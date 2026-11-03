@@ -1,4 +1,4 @@
-# 覆盖 H02/H03：跨入口复用检查、离线契约与内容证据。
+# 跨入口复用检查、离线契约与内容证据。
 import argparse
 import hashlib
 import json
@@ -21,7 +21,7 @@ def run(args, cwd=ROOT):
 
 def fingerprint():
     h = hashlib.sha256()
-    from .delivery import source_files
+    from .packaging import source_files
 
     versions = {
         name: importlib.metadata.version(name)
@@ -164,7 +164,7 @@ def main():
         check_staged()
         return
     if args.command == "package":
-        from .delivery import package
+        from .packaging import package
 
         if not args.output:
             raise ValueError("--output required")

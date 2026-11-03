@@ -1,4 +1,4 @@
-# 覆盖 F01/F02/R01/R02：事务、幂等、真实结果丢失后的恢复。
+# 事务、幂等、真实结果丢失后的恢复。
 from concurrent.futures import ThreadPoolExecutor
 from uuid import uuid4
 

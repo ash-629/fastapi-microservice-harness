@@ -234,7 +234,7 @@ onUnmounted(() => {
   <main>
     <header>
       <a class="brand" href="/">◈ ORDER STUDIO</a
-      ><span class="tag">微服务协作演示</span>
+      ><span class="tag">订单与库存</span>
     </header>
     <section class="hero">
       <p class="eyebrow">OPERATIONS / WORKSPACE</p>
@@ -370,7 +370,7 @@ onUnmounted(() => {
       <p>{{ labels[active.status] }} · {{ active.quantity }} 件</p>
       <p v-if="active.rejection_code">{{ active.rejection_code }}</p>
       <p v-if="active.needs_attention">
-        结果仍待确认，请联系演示维护者恢复处理。
+        结果仍待确认，请稍后刷新或联系管理员。
       </p>
       <p v-if="active.cancel_requested_at">
         申请取消：{{ new Date(active.cancel_requested_at).toLocaleString() }}
@@ -388,6 +388,6 @@ onUnmounted(() => {
       </button>
       <button @click="refreshDetail">刷新状态</button>
     </section>
-    <footer>ORDER STUDIO <span>订单与库存 · 本地演示环境</span></footer>
+    <footer>ORDER STUDIO <span>订单与库存 · 本地环境</span></footer>
   </main>
 </template>

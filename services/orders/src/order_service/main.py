@@ -1,4 +1,4 @@
-# 覆盖 F01/F02：应用工厂无导入副作用，统一错误与请求关联。
+# 应用工厂无导入副作用，统一错误与请求关联。
 import logging
 import os
 import json

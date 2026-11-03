@@ -1,4 +1,4 @@
-# 覆盖 H02：仅管理当前项目启动的进程。
+# 仅管理当前项目启动的进程。
 import json
 import os
 import subprocess

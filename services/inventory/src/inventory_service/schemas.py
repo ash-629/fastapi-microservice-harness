@@ -1,4 +1,4 @@
-# 覆盖 F01/F02：边界模型。
+# 接口边界模型。
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field

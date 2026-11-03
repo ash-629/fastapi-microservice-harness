@@ -1,4 +1,4 @@
-# 覆盖 F02/F05/R02：持久化订单、幂等请求、未知结果恢复。
+# 持久化订单、幂等请求、未知结果恢复。
 import hashlib
 import time
 from uuid import uuid4

@@ -1,10 +1,24 @@
-# Order Studio · FastAPI 微服务 Harness
+# Order Studio
 
-两个独立FastAPI服务、Vue工作台及可执行AI开发流程。合成数据；本机验证Python3.13.5、Node25.3.0。Node最低要求为20.19或22.12以上，推荐22 LTS。
+[![CI](https://github.com/ash-629/fastapi-microservice-harness/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ash-629/fastapi-microservice-harness/actions/workflows/ci.yml)
 
-## 快速启动
+基于FastAPI和Vue的订单与库存应用，包含两个独立微服务，以及面向AI辅助开发的项目规范、Skills、Hooks和自动检查工具。
 
-```powershell
+## 功能
+
+- 商品与库存查询，订单创建、详情、状态筛选与分页。
+- 幂等下单、原子库存占用、并发库存保护。
+- 订单取消与幂等库存释放，超时后的状态恢复。
+- OpenAPI契约、自动生成的TypeScript SDK、MSW与真实服务测试。
+- 统一开发命令、Git暂存快照检查、代码任务检查记录和CI。
+
+## 快速开始
+
+需要Python 3.12+、Git，以及Node.js 20.19或22.12以上版本。uv按`.python-version`选择Python，依赖由锁文件固定。
+
+```shell
+git clone https://github.com/ash-629/fastapi-microservice-harness.git
+cd fastapi-microservice-harness
 python -m pip install uv
 python -m uv sync --all-packages --locked
 npm --prefix web ci
@@ -12,42 +26,71 @@ python -m uv run --locked harness doctor
 python -m uv run --locked harness up
 ```
 
-浏览器打开 http://127.0.0.1:5173 。API文档在8001/docs、8002/docs。
-停止：`python -m uv run --locked harness down`。
+启动后访问：
 
-## 四项要求
-
-|要求|实现|
+|地址|用途|
 |---|---|
-|精简Skills/Hooks/AGENTS|AGENTS.md、.agents/skills三个技能、.codex配置与.githooks|
-|快速高质量迭代|统一CLI、内容指纹、契约、业务测试、浏览器测试、CI|
-|前后端协作|OpenAPI、生成SDK、MSW、真实联调|
-|设计与使用|以下文档、命令和演示流程|
+|http://127.0.0.1:5173|应用页面|
+|http://127.0.0.1:8001/docs|订单API|
+|http://127.0.0.1:8002/docs|库存API|
 
-- [架构与业务语义](docs/architecture.md)
-- [开发命令与限制](docs/development.md)
-- [面试演示](docs/demo.md)
-- [需求对应表](docs/alignment.md)
-- [实现交接](docs/tasks/implementation.md)
-- [v1.1交付前复测报告](QA_REPORT.md)
-- [v1.2取消订单：真实迭代与回放](docs/iterations/cancel-order.md)
+停止：
 
-## 检查
+```shell
+python -m uv run --locked harness down
+```
 
-```powershell
-python -m uv run --locked harness check --scope affected
-npm --prefix web exec -- playwright install chromium
+## 服务结构
+
+```mermaid
+flowchart LR
+    Web[Vue] --> Orders[Order Service]
+    Web --> Inventory[Inventory Service]
+    Orders -->|HTTP| Inventory
+    Orders --> OrdersDB[(orders.sqlite3)]
+    Inventory --> StockDB[(inventory.sqlite3)]
+```
+
+每个服务拥有独立数据库。服务间通过HTTP协作，不直接访问对方数据库。数据默认保存在忽略目录`.runtime/`，首次启动初始化商品，后续启动保留已有库存和订单。
+
+## 开发与检查
+
+```shell
+python -m uv run --locked harness task start --scope full
+python -m uv run --locked harness contract generate
 python -m uv run --locked harness check --scope full
+python -m uv run --locked harness task finish
+```
+
+完整检查前先停止本地服务，并安装测试浏览器：
+
+```shell
+npm --prefix web exec -- playwright install chromium
+```
+
+`AGENTS.md`是项目入口，`.agents/skills/`包含功能开发、API变更和缺陷修复流程。Git Hooks检查暂存快照；Codex Hooks在显式代码任务中核对检查范围、结果和内容指纹。原生Hook需要客户端支持并信任配置。
+
+```shell
+python -m uv run --locked harness hooks install
 python -m uv run --locked harness report latest
 ```
 
-完整检查前先down，防止测试端口冲突。首次下载浏览器单独计时。
-v1.2当前Windows实测54个Python测试、13个Playwright用例（11个浏览器场景、2个MSW协议用例），以及Ruff、mypy、契约与客户端一致性、前端格式和构建检查通过。包括正常取消、重复释放、释放响应丢失、重启恢复、旧库升级和真实页面取消。v1.1干净重装记录保留在QA_REPORT.md，本次增量过程见取消迭代文档。
+## 文档
 
-体验取消：创建订单后，在订单详情点击“取消订单并释放库存”。只允许已确认订单；取消结果未知时显示“取消处理中”，只有确认释放后才显示“已取消”。原演示数据会保留，启动时自动升级订单表。
+- [使用示例](docs/usage.md)
+- [系统架构](docs/architecture.md)
+- [开发指南与命令](docs/development.md)
+- [取消与库存释放](docs/cancellation.md)
+- [测试说明](docs/testing.md)
 
-代码任务先运行 `python -m uv run --locked harness task start --scope full`，检查通过后 `task finish`。Stop处理器会在显式代码任务缺少有效证据时请求续跑一次，防止循环；纯咨询不强制运行测试。原生Codex事件仍需目标客户端信任与实测。
+## 源码归档
 
-Git pre-commit验证暂存快照，不修改工作区；CI配置已提供但尚未远端执行。ZIP不包含.git，若需要Git Hooks，请先 `git init`，再执行 `harness hooks install`，提交前将所需源码暂存。
+[Releases](https://github.com/ash-629/fastapi-microservice-harness/releases/latest)提供源码归档和SHA-256校验文件。
 
-生成干净交付包：全量检查通过后运行 `python -m uv run --locked harness package --output ../delivery/OrderStudio.zip`。输出应在源码目录外，已有同名文件不会覆盖。
+本地创建归档需要当前完整检查通过：
+
+```shell
+python -m uv run --locked harness package --output ../releases/OrderStudio.zip
+```
+
+归档仅包含项目文件和检查结果，不包含本机依赖、数据库、日志或Git元数据。

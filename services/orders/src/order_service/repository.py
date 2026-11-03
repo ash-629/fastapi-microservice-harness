@@ -1,4 +1,4 @@
-# 覆盖 R01/R02：每次调用独立连接，短事务，禁止网络期间持锁。
+# 每次调用独立连接，短事务，禁止网络期间持锁。
 import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime

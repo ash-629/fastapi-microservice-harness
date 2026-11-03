@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 from harness.cli import ROOT
-from harness.delivery import source_files
+from harness.packaging import source_files
 
 
 def test_staged_checks_index_not_worktree(tmp_path):

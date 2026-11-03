@@ -1,20 +1,42 @@
-# 架构与业务语义
+# 系统架构
 
-F01 Inventory 独立拥有 products、reservations；F02 Order 独立拥有 orders。两个服务分别为 uv workspace 成员，只通过 HTTP 协作。SQLite 使用独立文件与短写事务，网络调用发生在事务外。
+## 模块
 
-R01 库存通过条件 UPDATE 保持非负；order_id 唯一，重复占用重放持久化结果。拒绝也持久化，后续补库存不改变历史结果。
+|模块|职责|存储与依赖|
+|---|---|---|
+|Order Service|订单、请求幂等、取消状态和恢复任务|独立SQLite，通过HTTP调用库存|
+|Inventory Service|商品、可用库存、库存占用和释放幂等|独立SQLite|
+|Vue应用|商品查询、下单、筛选、分页和订单详情|调用生成SDK，Vite代理转发API|
+|harness CLI|环境诊断、运行、契约、检查和源码归档|独立于业务运行的开发工具|
 
-R02 Order 首先持久化 PENDING_INVENTORY，再请求库存。RESERVED 转 CONFIRMED，明确业务拒绝转 REJECTED。超时和错误结构保留 PENDING。后台每秒扫描到期记录，失败退避，五次后 needs_attention，显式 reconcile 可再试。服务重启后从数据库恢复。
+两个Python服务是uv workspace成员，分别声明依赖，共享uv.lock。前端依赖由package-lock.json固定。服务不直接导入对方业务包，不访问对方数据库。
 
-请求幂等键为 UUID；相同键与相同内容复用订单，不同内容返回409。写事务的唯一约束处理并发竞争。当前支持单商品订单与已确认订单取消，无支付、认证或库存过期。
+## 下单
 
-API层提供统一错误和 request_id。schemas与路由声明为契约源，OpenAPI快照和SDK由命令生成；导出不创建数据库或启动服务。前端真正调用生成SDK，公共路径由Vite代理到相应服务。
+Order先持久化PENDING_INVENTORY，再调用库存接口。库存使用条件UPDATE保证数量非负，在同一写事务中保存幂等结果。相同订单ID重放结果，不重复扣库存；业务拒绝也持久化。
 
-架构检查目前机械验证跨服务导入；更细的依赖/分层约束仍需评审。库存业务拒绝通过内部200结果传递，公共下单转换为404/409，避免把网络代理错误误认为业务拒绝。
+Order收到匹配且有效的RESERVED结果后改为CONFIRMED，明确业务拒绝转为REJECTED。网络异常、未知错误和无效响应保留处理中，不能推断库存操作失败。
 
-开发模式存储初始化为幂等建表与种子插入；Order的schema版本0→1会在短事务中增加取消申请/完成时间字段，保留旧数据。生产鉴权、多版本兼容、远端保护与部署不属于当前本地演示。
+## 取消
 
-复测补充：请求模型先去除首尾空白再校验；下游占用结果严格校验类型，技术故障与契约错误区分；幂等冲突使用专用异常，其他内部异常不以409或原始文本暴露。列表与total在同一读事务中获取。检查证据覆盖源码与关键Python工具版本；检查过程中源码变化会使结果失败。
+CONFIRMED先持久化为CANCEL_PENDING，再请求库存释放。库存加回数量和RESERVED→RELEASED在同一事务完成。重复释放及迟到占用请求均重放结果。
 
-取消补充：CONFIRMED先持久化为CANCEL_PENDING，再通过幂等release释放库存，确认后变为CANCELLED。库存RESERVED→RELEASED与加回数量同事务完成；迟到reserve只重放RELEASED。重试耗尽保持CANCEL_PENDING并标needs_attention，显式重试可继续。详见[取消迭代](iterations/cancel-order.md)。
+Order确认RELEASED后改为CANCELLED。具体状态、重试和数据库升级见[取消与库存释放](cancellation.md)。
 
+## 一致性与恢复
+
+- 写事务使用数据库约束及短事务，网络调用在事务外。
+- 客户端幂等键为UUID；同键不同内容返回409。
+- 下单和取消的处理中状态保存在数据库中，服务重启后继续处理。
+- 自动重试有次数上限，达到上限后标needs_attention，支持显式reconcile。
+- 条件状态更新防止迟到结果覆盖终态；列表及total在同一读事务中查询。
+
+## 接口边界
+
+请求/响应由Pydantic模型定义，HTTP错误返回统一结构。schemas与路由是接口源，OpenAPI和SDK为生成产物。离线导出不启动服务、不创建数据库、不请求网络。
+
+请求日志提供request_id、服务名、路径、状态码和耗时；请求ID沿服务调用传递。业务错误不返回原始异常文本。
+
+## 运行范围
+
+应用默认绑定本机回环地址，使用合成商品数据。SQLite适用于本地运行和功能测试，写入并发受单写事务限制。认证、支付、占用过期和生产部署需要独立设计。

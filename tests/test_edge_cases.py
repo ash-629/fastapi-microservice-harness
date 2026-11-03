@@ -1,4 +1,4 @@
-"""交付前回归：边界、终态、故障语义和客户端信任边界。"""
+"""接口回归：边界、终态、故障语义和客户端信任边界。"""
 
 from concurrent.futures import ThreadPoolExecutor
 from uuid import uuid4

@@ -1,4 +1,4 @@
-# 覆盖 F01/F03/R01：原子占用、拒绝持久化、幂等重放。
+# 原子占用、拒绝持久化、幂等重放。
 import hashlib
 
 from .repository import connect, initialize, now

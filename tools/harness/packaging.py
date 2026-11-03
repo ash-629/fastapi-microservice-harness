@@ -1,4 +1,4 @@
-"""交付源码选择与干净打包；依赖、数据库、日志和 Git 元数据不进入压缩包。"""
+"""创建源码归档，排除依赖、运行数据、日志和 Git 元数据。"""
 
 import json
 import os
@@ -41,9 +41,9 @@ def package(root: Path, output: Path):
     from .hooks import read_json, verified
 
     if output.resolve().is_relative_to(root.resolve()):
-        raise ValueError("Place delivery archive outside the source project")
+        raise ValueError("Place source archive outside the project directory")
     if output.exists():
-        raise ValueError("Output exists; choose a new filename to preserve previous delivery")
+        raise ValueError("Output exists; choose a new filename to preserve the previous archive")
     report = read_json(root / ".harness/latest.json")
     if not verified(report, "full", fingerprint()):
         raise RuntimeError("Run a successful full check on current sources before packaging")
@@ -53,14 +53,11 @@ def package(root: Path, output: Path):
             info = zipfile.ZipInfo("OrderStudio/demo/" + path.relative_to(root).as_posix())
             info.external_attr = (0o100755 if ".githooks" in path.parts else 0o100644) << 16
             archive.writestr(info, path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED)
-        design = root.parent / "方案与设计_v1.0_20261103.md"
-        if design.exists():
-            archive.write(design, "OrderStudio/方案与设计.md")
         archive.writestr(
             "OrderStudio/README.md",
-            "# Order Studio\n\n从 [项目说明](demo/README.md) 开始。\n\n[原始方案与设计](方案与设计.md) 是设计基线，实际实现与限制以项目 README 和 QA_REPORT.md 为准。\n",
+            "# Order Studio\n\n安装、运行与开发说明见 [README](demo/README.md)。\n",
         )
         archive.writestr(
-            "OrderStudio/验收摘要.json", json.dumps(report, ensure_ascii=False, indent=2)
+            "OrderStudio/check-results.json", json.dumps(report, ensure_ascii=False, indent=2)
         )
     return output

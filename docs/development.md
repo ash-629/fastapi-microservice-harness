@@ -1,42 +1,67 @@
-# 开发与命令
+# 开发指南
 
-仓库入口见 README。Python成员各自声明依赖，uv.lock统一锁定；npm依赖通过package-lock.json锁定。
+## 环境
 
-|命令 harness 后的参数|用途|
+Python最低3.12，uv按.python-version选择版本。Node需满足^20.19.0或>=22.12.0。Python与前端依赖分别使用uv.lock和web/package-lock.json。
+
+初次安装见根目录README。服务进程、运行数据和日志位于.runtime，检查结果位于.harness；这些目录不进入版本控制。
+
+## 命令
+
+所有命令使用前缀`python -m uv run --locked harness`。
+
+|参数|用途|
 |---|---|
-|doctor|检查Node/npm/Git、依赖、契约和锁文件，显示端口及原生Hook状态|
-|up / down|启动或停止两个API和前端，端口8001/8002/5173|
-|seed|只插入缺失商品，不重置库存|
+|doctor|检查Node/npm/Git、依赖、契约、锁文件和端口|
+|up / down|启动或停止两个API及前端|
+|seed|插入缺失商品，不重置已有库存|
 |smoke|只读检查活动服务就绪|
-|smoke --isolated|临时库与动态端口真实业务验证|
-|reconcile --order-id UUID|对指定处理中订单恢复一次|
-|contract generate|离线导出并生成客户端|
-|contract check|临时生成并比较文件集合与内容|
-|check --scope quick|静态、类型、架构、契约、前端构建|
-|check --scope affected|quick加后端全部测试（小仓库保守范围）|
-|check --scope full|affected加真实API浏览器测试|
-|report latest|查看结果与 current 指纹是否仍有效|
-|hooks install|为当前独立仓库设置本地Git hooksPath|
-|staged|隔离导出Git index，检查静态、架构、契约与SDK；不修改工作区|
-|task start / task finish|显式声明代码任务检查范围，完成时验证当前证据|
-|package --output 源码外路径.zip|要求当前full通过，输出排除环境/数据库/日志的源码包，不覆盖已有文件|
+|smoke --isolated|临时数据库与动态端口的HTTP验证|
+|reconcile --order-id UUID|对指定处理中订单尝试恢复|
+|contract generate|离线导出OpenAPI并生成SDK|
+|contract check|临时生成并比较契约及SDK|
+|check --scope quick/affected/full|分层检查，详见测试说明|
+|report latest|查看最近结果及内容指纹是否仍有效|
+|hooks install|配置当前Git仓库的本地Hooks|
+|staged|在隔离目录检查Git暂存快照|
+|task start / task finish|声明代码任务范围、检查当前有效结果|
+|package --output 路径.zip|完整检查通过后创建源码归档，不覆盖已有文件|
 
-命令前缀为 `python -m uv run --locked harness`，uv在PATH时可简写 `uv run --locked harness`。
+## 修改接口
 
-## 协作步骤
+1. 定义可观察行为，识别提供方和消费者。
+2. 修改schemas、路由和错误模型。
+3. 运行contract generate，查看契约及SDK差异。
+4. 同步前端、Mock和测试。
+5. 执行相应检查；跨服务或状态机变更使用full。
 
-新增功能使用 feature-delivery；改参数响应使用 api-change；修复故障使用 bugfix。先定义可观察验收，再修改模型和路由，生成SDK，同步页面与Mock，运行检查。生成文件不能手改。结构契约通过不替代业务断言。
+生成文件不手改。结构契约不能替代业务行为测试。
 
-开发纯前端：`cd web; npm run dev`，使用 src/mocks 的MSW数据时设置 VITE_MOCK=1（独立Mock模式）。真实模式不设置该值。
+## 前端与Mock
 
-## Hooks 与质量边界
+单独启动前端：在web目录执行`npm run dev`。设置VITE_MOCK=1可使用MSW模式，真实模式不设置该值。
 
-Git pre-commit检查暂存快照，源代码从临时index副本导入，依赖可复用本机已锁定安装。未暂存文件不会覆盖提交内容；不stash、不修改工作区。pre-push执行工作区affected反馈，最终提交内容仍由干净CI验证。CI尚未在远端运行。ZIP不带.git，安装Git Hooks前需要git init；提交前暂存所需项目文件。
-Codex项目Hook需在客户端审阅和信任。SessionStart提示入口，PostToolUse记录显式任务是否变脏，Stop核对PASS、检查集合与内容指纹。代码任务先task start --scope affected（跨服务及工具变更用full）；缺少证据请求续跑一次，第二次仅报告阻碍以防循环；通过后task finish。纯咨询不启动代码任务。处理器协议已测试，原生事件加载仍待目标客户端验证，不能当作完整安全边界。
+测试前端类型与格式：
 
-## 已知取舍
+```shell
+npm --prefix web run build
+npm --prefix web run format:check
+```
 
-完整检查首次下载浏览器成本独立计算；affected当前保守运行全部后端测试。并发测试验证正确性，不代表生产吞吐。
-本机依赖使用Python3.13.5；最低3.12。TestClient出现上游HTTPX弃用提示，测试仍通过，未来升级需重新验证。
-Hooks处理器及暂存快照已执行测试；原生事件加载、远端CI、分支保护和新会话演示须在对应环境验证，不伪称已完成。详见[复测报告](../QA_REPORT.md)。
+## Skills与Hooks
 
+项目提供feature-development、api-change、bugfix三个流程。复杂变更可在docs/plans记录目标、约束和验证结果。
+
+代码任务先task start，再修改与检查，最后task finish。Stop处理器验证检查范围、PASS状态和内容指纹；缺少证据时请求续跑一次，第二次报告未通过原因以防循环。纯咨询不建立代码任务。
+
+原生Codex Hooks需要客户端支持并信任配置；Git Hooks不依赖原生事件。pre-commit从index导出源码进行静态、架构和契约检查，不stash或覆盖工作区；pre-push运行工作区affected检查。远端CI验证实际推送的内容。
+
+从源码ZIP开始使用Git时，先git init，再hooks install；提交前暂存所需项目文件。
+
+## 常见问题
+
+- 端口被占用：doctor显示占用状态；不会自动终止其他进程。
+- full测试端口冲突：先down，再运行完整检查。
+- 契约漂移：核对接口源，再运行contract generate并检查差异。
+- 报告过期：修改内容后重新执行检查，不复用旧的通过结果。
+- 订单持续处理中：查看request_id及服务日志，需要时执行指定订单的reconcile。

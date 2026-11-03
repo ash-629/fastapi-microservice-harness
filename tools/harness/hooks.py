@@ -48,7 +48,7 @@ def verified(receipt: dict, scope: str, current: str) -> bool:
 def handle(event: str, data: dict, root: Path = cli.ROOT) -> dict:
     if event == "SessionStart":
         return {
-            "systemMessage": "入口 AGENTS.md；任务 docs/tasks；代码任务先执行 harness task start。"
+            "systemMessage": "入口 AGENTS.md；开发指南 docs/development.md；代码任务先执行 harness task start。"
         }
     task_path = root / ".harness/task.json"
     task = read_json(task_path)
