@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --locked python -m harness.hooks SessionStart",
+            "command_windows": "python -m uv run --locked python -m harness.hooks SessionStart",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --locked python -m harness.hooks PostToolUse",
+            "command_windows": "python -m uv run --locked python -m harness.hooks PostToolUse",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --locked python -m harness.hooks Stop",
+            "command_windows": "python -m uv run --locked python -m harness.hooks Stop",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

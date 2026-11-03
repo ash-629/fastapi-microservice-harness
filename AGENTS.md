@@ -1,0 +1,13 @@
+# 开发约定
+- services/orders 管订单、幂等和恢复；services/inventory 管库存与占用。web 为业务前端。
+- 架构见 docs/architecture.md；使用见 docs/development.md；演示见 docs/demo.md。
+- 功能迭代用 feature-delivery；接口变化用 api-change；故障修复用 bugfix。
+- 服务只通过 HTTP 协作；不导入对方包或读写对方数据库。
+- schemas 和路由是接口源；使用 contract generate，不手改生成目录。
+- 超时保留 PENDING，按相同订单标识恢复。
+- 检查：uv run --locked harness check --scope affected；全量使用 --scope full。
+- 实质代码任务先运行 `python -m uv run --locked harness task start --scope affected`，跨服务或工具变更使用 full；检查通过后 task finish。
+- 纯咨询不启动服务。本地隔离测试可以直接执行。
+- 检查证据对应当前内容；不通过删除断言或跳过检查伪造成功。
+- 实质任务写入 docs/tasks，记录验收、实际结果、未验证项与下一步。
+- 不推送、发布或携带工作区私人资料。

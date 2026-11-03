@@ -1,0 +1,3 @@
+#!/bin/sh
+# Working-tree feedback; CI checks committed content.
+python -m uv run --locked harness check --scope affected
