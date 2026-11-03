@@ -1,5 +1,10 @@
 import { listProducts } from "./generated/inventory/sdk.gen";
-import { listOrders, getOrder, createOrder } from "./generated/orders/sdk.gen";
+import {
+  listOrders,
+  getOrder,
+  createOrder,
+  cancelOrder,
+} from "./generated/orders/sdk.gen";
 import type { Order } from "./generated/orders/types.gen";
 export type { Order };
 export class ApiError extends Error {
@@ -14,6 +19,7 @@ const messages: Record<string, string> = {
   INSUFFICIENT_STOCK: "库存不足，请调整数量",
   PRODUCT_NOT_FOUND: "商品不存在，请刷新商品列表",
   ORDER_NOT_FOUND: "订单不存在",
+  ORDER_NOT_CANCELLABLE: "当前订单不能取消，仅已确认订单支持取消",
   IDEMPOTENCY_CONFLICT: "操作内容与原请求不一致，请重新提交",
   VALIDATION_ERROR: "输入不符合要求，请检查商品和数量",
   STORAGE_UNAVAILABLE: "服务暂时不可用，请稍后使用相同操作重试",
@@ -60,4 +66,9 @@ export const create = (product_id: string, quantity: number, key: string) =>
       headers: { "idempotency-key": key },
       body: { product_id, quantity },
     }),
+  );
+
+export const cancel = (id: string) =>
+  call((signal) =>
+    cancelOrder({ throwOnError: true, signal, path: { order_id: id } }),
   );

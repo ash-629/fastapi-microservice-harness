@@ -9,6 +9,14 @@ class IdempotencyConflict(ValueError):
     """同一操作标识被用于不同业务输入。"""
 
 
+class ReservationNotFound(LookupError):
+    pass
+
+
+class ReservationNotReleasable(ValueError):
+    pass
+
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS products(product_id TEXT PRIMARY KEY, sku TEXT UNIQUE, name TEXT,
  available_qty INTEGER NOT NULL CHECK(available_qty>=0), updated_at TEXT);
@@ -53,4 +61,30 @@ def reserve(path, oid, req: Request):
             "INSERT INTO reservations VALUES(?,?,?,?,?,?,?)",
             (oid, req.product_id, req.quantity, digest, status, code, now()),
         )
+        return dict(db.execute("SELECT * FROM reservations WHERE order_id=?", (oid,)).fetchone())
+
+
+def release(path, oid, req: Request):
+    """C03/C04：同一事务内加回库存并写终态，迟到reserve不能重新占用。"""
+    digest = hashlib.sha256(req.model_dump_json().encode()).hexdigest()
+    with connect(path) as db:
+        db.execute("BEGIN IMMEDIATE")
+        row = db.execute("SELECT * FROM reservations WHERE order_id=?", (oid,)).fetchone()
+        if row is None:
+            raise ReservationNotFound(oid)
+        if row["request_hash"] != digest:
+            raise IdempotencyConflict("IDEMPOTENCY_CONFLICT")
+        if row["status"] == "RELEASED":
+            return dict(row)
+        if row["status"] != "RESERVED":
+            raise ReservationNotReleasable("RESERVATION_NOT_RELEASABLE")
+        if (
+            db.execute(
+                "UPDATE products SET available_qty=available_qty+?,updated_at=? WHERE product_id=?",
+                (row["quantity"], now(), row["product_id"]),
+            ).rowcount
+            != 1
+        ):
+            raise RuntimeError("Reservation product missing")
+        db.execute("UPDATE reservations SET status='RELEASED' WHERE order_id=?", (oid,))
         return dict(db.execute("SELECT * FROM reservations WHERE order_id=?", (oid,)).fetchone())

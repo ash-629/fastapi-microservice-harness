@@ -6,7 +6,6 @@ import time
 import sqlite3
 import threading
 from contextlib import asynccontextmanager
-from typing import Literal
 from uuid import UUID, uuid4
 
 from fastapi import FastAPI, Header, Query
@@ -17,7 +16,7 @@ from starlette.exceptions import HTTPException
 
 from . import service
 from .repository import connect
-from .schemas import Error, Order, OrderPage, Request
+from .schemas import Error, Order, OrderPage, Request, OrderState
 
 
 def create_app(db_path=None, inventory_url=None, recovery=True):
@@ -142,16 +141,42 @@ def create_app(db_path=None, inventory_url=None, recovery=True):
                 404 if row["rejection_code"] == "PRODUCT_NOT_FOUND" else 409,
                 {"order_id": row["order_id"]},
             )
-        status = 202 if row["status"] == "PENDING_INVENTORY" else (201 if fresh else 200)
+        status = (
+            202
+            if row["status"] in ("PENDING_INVENTORY", "CANCEL_PENDING")
+            else (201 if fresh else 200)
+        )
         return JSONResponse(
             status_code=status,
             content=Order.model_validate(row).model_dump(),
             headers={"Location": f"/api/v1/orders/{row['order_id']}", "Retry-After": "1"},
         )
 
+    @app.post(
+        "/api/v1/orders/{order_id}/cancel",
+        response_model=Order,
+        responses={202: {"model": Order}},
+        operation_id="cancel_order",
+    )
+    def cancel(order_id: UUID, request: HTTPRequest):
+        try:
+            row = service.request_cancel(path, str(order_id))
+        except KeyError:
+            raise HTTPException(404, "ORDER_NOT_FOUND") from None
+        except service.OrderNotCancellable:
+            raise HTTPException(409, "ORDER_NOT_CANCELLABLE") from None
+        row = service.advance_cancel(path, row, url, request.state.rid)
+        code = 202 if row["status"] == "CANCEL_PENDING" else 200
+        headers = {"Location": f"/api/v1/orders/{order_id}"}
+        if code == 202:
+            headers["Retry-After"] = "1"
+        return JSONResponse(
+            status_code=code, content=Order.model_validate(row).model_dump(), headers=headers
+        )
+
     @app.get("/api/v1/orders", response_model=OrderPage, operation_id="list_orders")
     def orders(
-        status: Literal["PENDING_INVENTORY", "CONFIRMED", "REJECTED"] | None = None,
+        status: OrderState | None = None,
         limit: int = Query(20, ge=1, le=100),
         offset: int = Query(0, ge=0),
     ):

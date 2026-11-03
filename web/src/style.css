@@ -273,3 +273,17 @@ tr:focus-visible {
     min-height: 44px;
   }
 }
+
+.CANCEL_PENDING {
+  background: #fff2d2;
+  color: #8b6b20;
+}
+.CANCELLED {
+  background: #e8ecf0;
+  color: #4d6473;
+}
+.cancel-order {
+  border-color: #a16d55;
+  color: #8b4f33;
+  margin-right: 12px;
+}

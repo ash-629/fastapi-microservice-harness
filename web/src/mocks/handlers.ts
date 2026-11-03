@@ -5,7 +5,11 @@ import type {
   Error as ApiError,
 } from "../api/generated/orders/types.gen";
 import type { ProductPage } from "../api/generated/inventory/types.gen";
-export function createHandlers(origin = "", pending = false) {
+export function createHandlers(
+  origin = "",
+  pending = false,
+  cancelPending = false,
+) {
   const product: ProductPage = {
     items: [
       {
@@ -53,7 +57,13 @@ export function createHandlers(origin = "", pending = false) {
         offset = Number(q.get("offset") ?? 0);
       if (
         (status &&
-          !["CONFIRMED", "REJECTED", "PENDING_INVENTORY"].includes(status)) ||
+          ![
+            "CONFIRMED",
+            "REJECTED",
+            "PENDING_INVENTORY",
+            "CANCEL_PENDING",
+            "CANCELLED",
+          ].includes(status)) ||
         !Number.isInteger(limit) ||
         limit < 1 ||
         limit > 100 ||
@@ -125,6 +135,23 @@ export function createHandlers(origin = "", pending = false) {
       keys.set(key.toLowerCase(), { body, row });
       rows.unshift(row);
       return result(row, true);
+    }),
+    http.post(origin + "/api/v1/orders/:id/cancel", ({ params }) => {
+      const row = rows.find((x) => x.order_id === params.id);
+      if (!row) return error("ORDER_NOT_FOUND", 404);
+      if (row.status === "CANCELLED") return HttpResponse.json(row);
+      if (row.status === "CANCEL_PENDING")
+        return HttpResponse.json(row, { status: 202 });
+      if (row.status !== "CONFIRMED")
+        return error("ORDER_NOT_CANCELLABLE", 409);
+      row.cancel_requested_at = new Date().toISOString();
+      row.status = cancelPending ? "CANCEL_PENDING" : "CANCELLED";
+      if (!cancelPending) {
+        product.items[0].available_qty += row.quantity;
+        row.cancelled_at = new Date().toISOString();
+      }
+      row.updated_at = new Date().toISOString();
+      return HttpResponse.json(row, { status: cancelPending ? 202 : 200 });
     }),
     http.get(origin + "/api/v1/orders/:id", ({ params }) => {
       const row = rows.find((x) => x.order_id === params.id);

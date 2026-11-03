@@ -15,7 +15,7 @@ from starlette.exceptions import HTTPException
 
 from . import service
 from .repository import connect
-from .schemas import Error, Product, ProductPage, Request, Reservation
+from .schemas import Error, Product, ProductPage, Request, Reservation, ReleaseResult
 
 
 def create_app(db_path=None, inventory_url=None, recovery=True):
@@ -136,6 +136,19 @@ def create_app(db_path=None, inventory_url=None, recovery=True):
     )
     def reserve(order_id: UUID, req: Request):
         return service.reserve(path, str(order_id), req)
+
+    @app.put(
+        "/internal/v1/reservations/{order_id}/release",
+        response_model=ReleaseResult,
+        operation_id="release_reservation",
+    )
+    def release(order_id: UUID, req: Request):
+        try:
+            return service.release(path, str(order_id), req)
+        except service.ReservationNotFound:
+            raise HTTPException(404, "RESERVATION_NOT_FOUND") from None
+        except service.ReservationNotReleasable:
+            raise HTTPException(409, "RESERVATION_NOT_RELEASABLE") from None
 
     @app.get(
         "/internal/v1/reservations/{order_id}",

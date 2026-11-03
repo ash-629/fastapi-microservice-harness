@@ -45,3 +45,46 @@ test("MSW契约：幂等、库存、冲突、校验、筛选分页与404", async
     server.close();
   }
 });
+
+test("MSW取消幂等，库存只加回一次，筛选使用新状态", async () => {
+  const server = setupServer(...createHandlers("http://cancel.test"));
+  server.listen({ onUnhandledRequest: "error" });
+  try {
+    const headers = {
+      "Content-Type": "application/json",
+      "Idempotency-Key": crypto.randomUUID(),
+    };
+    const body = { product_id: "sku-demo-001", quantity: 2 };
+    const created = await (
+      await fetch("http://cancel.test/api/v1/orders", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      })
+    ).json();
+    const url =
+      "http://cancel.test/api/v1/orders/" + created.order_id + "/cancel";
+    expect((await fetch(url, { method: "POST" })).status).toBe(200);
+    expect((await (await fetch(url, { method: "POST" })).json()).status).toBe(
+      "CANCELLED",
+    );
+    const stock = await (
+      await fetch("http://cancel.test/api/v1/products")
+    ).json();
+    expect(stock.items[0].available_qty).toBe(20);
+    const page = await (
+      await fetch("http://cancel.test/api/v1/orders?status=CANCELLED")
+    ).json();
+    expect(page.total).toBe(1);
+    const replay = await (
+      await fetch("http://cancel.test/api/v1/orders", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      })
+    ).json();
+    expect(replay.status).toBe("CANCELLED");
+  } finally {
+    server.close();
+  }
+});

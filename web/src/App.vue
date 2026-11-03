@@ -10,6 +10,7 @@ const status = ref<api.Order["status"] | "">(""),
   offset = ref(0),
   total = ref(0);
 const busy = ref(false),
+  cancelling = ref(false),
   loading = ref(true),
   error = ref(""),
   notice = ref(""),
@@ -18,6 +19,8 @@ const labels: Record<api.Order["status"], string> = {
   CONFIRMED: "已确认",
   REJECTED: "已拒绝",
   PENDING_INVENTORY: "确认中",
+  CANCEL_PENDING: "取消处理中",
+  CANCELLED: "已取消",
 };
 interface Pending {
   body: string;
@@ -72,14 +75,39 @@ function closeDetail() {
   cancelPoll();
   active.value = null;
 }
-function describe(o: api.Order) {
-  notice.value =
-    o.status === "CONFIRMED"
-      ? "订单已确认"
-      : o.status === "REJECTED"
-        ? "订单已拒绝，请查看原因"
-        : "订单正在确认库存";
+function isProcessing(state: api.Order["status"]) {
+  return state === "PENDING_INVENTORY" || state === "CANCEL_PENDING";
 }
+function describe(o: api.Order) {
+  const text: Record<api.Order["status"], string> = {
+    CONFIRMED: "订单已确认",
+    REJECTED: "订单已拒绝，请查看原因",
+    PENDING_INVENTORY: "订单正在确认库存",
+    CANCEL_PENDING: "取消处理中，正在确认库存释放",
+    CANCELLED: "订单已取消，库存已释放",
+  };
+  notice.value = text[o.status];
+}
+async function cancelOrder() {
+  const id = active.value?.order_id;
+  if (!id || active.value?.status !== "CONFIRMED" || cancelling.value) return;
+  cancelling.value = true;
+  error.value = "";
+  cancelPoll();
+  const version = detailVersion;
+  try {
+    const o = await api.cancel(id);
+    if (disposed || version !== detailVersion) return;
+    showOrder(o);
+    describe(o);
+    await load();
+  } catch (e) {
+    if (!disposed && version === detailVersion) error.value = message(e);
+  } finally {
+    if (!disposed) cancelling.value = false;
+  }
+}
+
 async function load() {
   const version = ++loadVersion;
   loading.value = true;
@@ -107,10 +135,10 @@ function poll(id: string, start: number, version: number) {
       if (disposed || version !== detailVersion) return;
       active.value = o;
       describe(o);
-      if (o.status === "PENDING_INVENTORY" && Date.now() - start < 30000)
+      if (isProcessing(o.status) && Date.now() - start < 30000)
         poll(id, start, version);
       else {
-        if (o.status !== "PENDING_INVENTORY") clearPending(id);
+        if (!isProcessing(o.status)) clearPending(id);
         await load();
       }
     } catch (e) {
@@ -121,8 +149,7 @@ function poll(id: string, start: number, version: number) {
 function showOrder(o: api.Order) {
   cancelPoll();
   active.value = o;
-  if (o.status === "PENDING_INVENTORY")
-    poll(o.order_id, Date.now(), detailVersion);
+  if (isProcessing(o.status)) poll(o.order_id, Date.now(), detailVersion);
 }
 async function refreshDetail() {
   const id = active.value?.order_id,
@@ -133,7 +160,7 @@ async function refreshDetail() {
     if (disposed || version !== detailVersion) return;
     active.value = o;
     describe(o);
-    if (o.status !== "PENDING_INVENTORY") {
+    if (!isProcessing(o.status)) {
       cancelPoll();
       clearPending(id);
       await load();
@@ -163,7 +190,7 @@ async function submit() {
     savePending({ ...pending, orderId: o.order_id });
     showOrder(o);
     describe(o);
-    if (o.status !== "PENDING_INVENTORY") clearPending(o.order_id);
+    if (!isProcessing(o.status)) clearPending(o.order_id);
     await load();
   } catch (e) {
     if (!disposed) {
@@ -280,6 +307,8 @@ onUnmounted(() => {
           <option value="CONFIRMED">已确认</option>
           <option value="PENDING_INVENTORY">确认中</option>
           <option value="REJECTED">已拒绝</option>
+          <option value="CANCEL_PENDING">取消处理中</option>
+          <option value="CANCELLED">已取消</option>
         </select>
       </div>
       <div class="table-wrap">
@@ -305,13 +334,7 @@ onUnmounted(() => {
               <td>{{ o.product_id }}</td>
               <td>{{ o.quantity }}</td>
               <td>
-                <span :class="['badge', o.status]">{{
-                  {
-                    CONFIRMED: "已确认",
-                    REJECTED: "已拒绝",
-                    PENDING_INVENTORY: "确认中",
-                  }[o.status]
-                }}</span>
+                <span :class="['badge', o.status]">{{ labels[o.status] }}</span>
               </td>
               <td>{{ new Date(o.created_at).toLocaleString() }}</td>
             </tr>
@@ -349,6 +372,20 @@ onUnmounted(() => {
       <p v-if="active.needs_attention">
         结果仍待确认，请联系演示维护者恢复处理。
       </p>
+      <p v-if="active.cancel_requested_at">
+        申请取消：{{ new Date(active.cancel_requested_at).toLocaleString() }}
+      </p>
+      <p v-if="active.cancelled_at">
+        取消完成：{{ new Date(active.cancelled_at).toLocaleString() }}
+      </p>
+      <button
+        v-if="active.status === 'CONFIRMED'"
+        class="cancel-order"
+        :disabled="cancelling"
+        @click="cancelOrder"
+      >
+        {{ cancelling ? "正在取消…" : "取消订单并释放库存" }}
+      </button>
       <button @click="refreshDetail">刷新状态</button>
     </section>
     <footer>ORDER STUDIO <span>订单与库存 · 本地演示环境</span></footer>

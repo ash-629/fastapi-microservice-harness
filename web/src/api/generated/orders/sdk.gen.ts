@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateOrderData, CreateOrderErrors, CreateOrderResponses, GetOrderData, GetOrderErrors, GetOrderResponses, ListOrdersData, ListOrdersErrors, ListOrdersResponses, LiveData, LiveErrors, LiveResponses, ReadyData, ReadyErrors, ReadyResponses } from './types.gen';
+import type { CancelOrderData, CancelOrderErrors, CancelOrderResponses, CreateOrderData, CreateOrderErrors, CreateOrderResponses, GetOrderData, GetOrderErrors, GetOrderResponses, ListOrdersData, ListOrdersErrors, ListOrdersResponses, LiveData, LiveErrors, LiveResponses, ReadyData, ReadyErrors, ReadyResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -39,6 +39,11 @@ export const createOrder = <ThrowOnError extends boolean = false>(options: Optio
  * Order
  */
 export const getOrder = <ThrowOnError extends boolean = false>(options: Options<GetOrderData, ThrowOnError>): RequestResult<GetOrderResponses, GetOrderErrors, ThrowOnError> => (options.client ?? client).get<GetOrderResponses, GetOrderErrors, ThrowOnError>({ url: '/api/v1/orders/{order_id}', ...options });
+
+/**
+ * Cancel
+ */
+export const cancelOrder = <ThrowOnError extends boolean = false>(options: Options<CancelOrderData, ThrowOnError>): RequestResult<CancelOrderResponses, CancelOrderErrors, ThrowOnError> => (options.client ?? client).post<CancelOrderResponses, CancelOrderErrors, ThrowOnError>({ url: '/api/v1/orders/{order_id}/cancel', ...options });
 
 /**
  * Live

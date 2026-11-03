@@ -84,6 +84,32 @@ export type ProductPage = {
 };
 
 /**
+ * ReleaseResult
+ */
+export type ReleaseResult = {
+    /**
+     * Order Id
+     */
+    order_id: string;
+    /**
+     * Product Id
+     */
+    product_id: string;
+    /**
+     * Quantity
+     */
+    quantity: number;
+    /**
+     * Rejection Code
+     */
+    rejection_code: null;
+    /**
+     * Status
+     */
+    status: 'RELEASED';
+};
+
+/**
  * Request
  */
 export type Request = {
@@ -120,7 +146,7 @@ export type Reservation = {
     /**
      * Status
      */
-    status: 'RESERVED' | 'REJECTED';
+    status: 'RESERVED' | 'REJECTED' | 'RELEASED';
 };
 
 export type ListProductsData = {
@@ -388,3 +414,49 @@ export type PutReservationResponses = {
 };
 
 export type PutReservationResponse = PutReservationResponses[keyof PutReservationResponses];
+
+export type ReleaseReservationData = {
+    body: Request;
+    path: {
+        /**
+         * Order Id
+         */
+        order_id: string;
+    };
+    query?: never;
+    url: '/internal/v1/reservations/{order_id}/release';
+};
+
+export type ReleaseReservationErrors = {
+    /**
+     * Not Found
+     */
+    404: Error;
+    /**
+     * Conflict
+     */
+    409: Error;
+    /**
+     * Unprocessable Content
+     */
+    422: Error;
+    /**
+     * Internal Server Error
+     */
+    500: Error;
+    /**
+     * Service Unavailable
+     */
+    503: Error;
+};
+
+export type ReleaseReservationError = ReleaseReservationErrors[keyof ReleaseReservationErrors];
+
+export type ReleaseReservationResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReleaseResult;
+};
+
+export type ReleaseReservationResponse = ReleaseReservationResponses[keyof ReleaseReservationResponses];

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetProductData, GetProductErrors, GetProductResponses, GetReservationData, GetReservationErrors, GetReservationResponses, ListProductsData, ListProductsErrors, ListProductsResponses, LiveData, LiveErrors, LiveResponses, PutReservationData, PutReservationErrors, PutReservationResponses, ReadyData, ReadyErrors, ReadyResponses } from './types.gen';
+import type { GetProductData, GetProductErrors, GetProductResponses, GetReservationData, GetReservationErrors, GetReservationResponses, ListProductsData, ListProductsErrors, ListProductsResponses, LiveData, LiveErrors, LiveResponses, PutReservationData, PutReservationErrors, PutReservationResponses, ReadyData, ReadyErrors, ReadyResponses, ReleaseReservationData, ReleaseReservationErrors, ReleaseReservationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -48,6 +48,18 @@ export const getReservation = <ThrowOnError extends boolean = false>(options: Op
  */
 export const putReservation = <ThrowOnError extends boolean = false>(options: Options<PutReservationData, ThrowOnError>): RequestResult<PutReservationResponses, PutReservationErrors, ThrowOnError> => (options.client ?? client).put<PutReservationResponses, PutReservationErrors, ThrowOnError>({
     url: '/internal/v1/reservations/{order_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Release
+ */
+export const releaseReservation = <ThrowOnError extends boolean = false>(options: Options<ReleaseReservationData, ThrowOnError>): RequestResult<ReleaseReservationResponses, ReleaseReservationErrors, ThrowOnError> => (options.client ?? client).put<ReleaseReservationResponses, ReleaseReservationErrors, ThrowOnError>({
+    url: '/internal/v1/reservations/{order_id}/release',
     ...options,
     headers: {
         'Content-Type': 'application/json',

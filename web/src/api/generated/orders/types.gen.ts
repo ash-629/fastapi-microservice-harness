@@ -40,6 +40,14 @@ export type ErrorDetail = {
  */
 export type Order = {
     /**
+     * Cancel Requested At
+     */
+    cancel_requested_at?: string | null;
+    /**
+     * Cancelled At
+     */
+    cancelled_at?: string | null;
+    /**
      * Created At
      */
     created_at: string;
@@ -66,7 +74,7 @@ export type Order = {
     /**
      * Status
      */
-    status: 'PENDING_INVENTORY' | 'CONFIRMED' | 'REJECTED';
+    status: 'PENDING_INVENTORY' | 'CONFIRMED' | 'REJECTED' | 'CANCEL_PENDING' | 'CANCELLED';
     /**
      * Updated At
      */
@@ -116,7 +124,7 @@ export type ListOrdersData = {
         /**
          * Status
          */
-        status?: 'PENDING_INVENTORY' | 'CONFIRMED' | 'REJECTED' | null;
+        status?: 'PENDING_INVENTORY' | 'CONFIRMED' | 'REJECTED' | 'CANCEL_PENDING' | 'CANCELLED' | null;
         /**
          * Limit
          */
@@ -263,6 +271,56 @@ export type GetOrderResponses = {
 };
 
 export type GetOrderResponse = GetOrderResponses[keyof GetOrderResponses];
+
+export type CancelOrderData = {
+    body?: never;
+    path: {
+        /**
+         * Order Id
+         */
+        order_id: string;
+    };
+    query?: never;
+    url: '/api/v1/orders/{order_id}/cancel';
+};
+
+export type CancelOrderErrors = {
+    /**
+     * Not Found
+     */
+    404: Error;
+    /**
+     * Conflict
+     */
+    409: Error;
+    /**
+     * Unprocessable Content
+     */
+    422: Error;
+    /**
+     * Internal Server Error
+     */
+    500: Error;
+    /**
+     * Service Unavailable
+     */
+    503: Error;
+};
+
+export type CancelOrderError = CancelOrderErrors[keyof CancelOrderErrors];
+
+export type CancelOrderResponses = {
+    /**
+     * Successful Response
+     */
+    200: Order;
+    /**
+     * Accepted
+     */
+    202: Order;
+};
+
+export type CancelOrderResponse = CancelOrderResponses[keyof CancelOrderResponses];
 
 export type LiveData = {
     body?: never;

@@ -105,6 +105,40 @@
         "title": "ProductPage",
         "type": "object"
       },
+      "ReleaseResult": {
+        "properties": {
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "rejection_code": {
+            "title": "Rejection Code",
+            "type": "null"
+          },
+          "status": {
+            "const": "RELEASED",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "product_id",
+          "quantity",
+          "status",
+          "rejection_code"
+        ],
+        "title": "ReleaseResult",
+        "type": "object"
+      },
       "Request": {
         "additionalProperties": false,
         "properties": {
@@ -156,7 +190,8 @@
           "status": {
             "enum": [
               "RESERVED",
-              "REJECTED"
+              "REJECTED",
+              "RELEASED"
             ],
             "title": "Status",
             "type": "string"
@@ -650,6 +685,96 @@
           }
         },
         "summary": "Reserve"
+      }
+    },
+    "/internal/v1/reservations/{order_id}/release": {
+      "put": {
+        "operationId": "release_reservation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Release"
       }
     }
   }

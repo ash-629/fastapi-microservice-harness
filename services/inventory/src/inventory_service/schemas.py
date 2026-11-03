@@ -29,13 +29,18 @@ class Product(BaseModel):
     updated_at: str
 
 
+OrderState = Literal["PENDING_INVENTORY", "CONFIRMED", "REJECTED", "CANCEL_PENDING", "CANCELLED"]
+
+
 class Order(BaseModel):
     order_id: str
     product_id: str
     quantity: int
-    status: Literal["PENDING_INVENTORY", "CONFIRMED", "REJECTED"]
+    status: OrderState
     rejection_code: str | None
     needs_attention: bool
+    cancel_requested_at: str | None = None
+    cancelled_at: str | None = None
     created_at: str
     updated_at: str
 
@@ -45,7 +50,7 @@ class Reservation(BaseModel):
     order_id: str
     product_id: str
     quantity: int
-    status: Literal["RESERVED", "REJECTED"]
+    status: Literal["RESERVED", "REJECTED", "RELEASED"]
     rejection_code: str | None
 
 
@@ -61,3 +66,12 @@ class OrderPage(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class ReleaseResult(BaseModel):
+    model_config = ConfigDict(strict=True)
+    order_id: str
+    product_id: str
+    quantity: int
+    status: Literal["RELEASED"]
+    rejection_code: None
