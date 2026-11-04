@@ -1,2 +1,2 @@
 #!/bin/sh
-python -m uv run --locked harness staged
+node tools/harness.mjs staged

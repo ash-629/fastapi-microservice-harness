@@ -1,12 +1,11 @@
 # 开发规范
-- services/orders负责订单、幂等和恢复；services/inventory负责库存和占用；web是前端。
-- 架构见docs/architecture.md，开发命令见docs/development.md，操作示例见docs/usage.md。
-- 功能开发使用feature-development；接口变化使用api-change；故障修复使用bugfix。
-- 服务只通过HTTP协作，不导入对方包或访问对方数据库。
-- schemas和路由是接口源；使用contract generate更新契约及SDK，不手改生成目录。
-- 超时保留处理中状态，通过幂等操作恢复结果。
-- 代码任务先运行harness task start --scope affected，跨服务或工具变更使用full；检查通过后task finish。
-- 本地隔离测试可以直接执行；纯咨询无需启动服务。
-- 检查结果必须对应当前内容；不得删除断言或跳过失败来伪造通过。
-- 跨服务、协议或状态机变更可在docs/plans记录目标、决策和实际验证结果。
-- 仅在明确授权后写入远端仓库；不提交运行数据、凭据或本机依赖。
+- Java 21、Spring Boot；orders管理订单和恢复，inventory管理库存，common只放基础设施，web为Vue前端。
+- 先读docs/architecture.md和docs/development.md；按任务使用feature-development、api-change、bugfix。
+- 服务只通过HTTP协作，不导入对方模块或访问对方数据库。
+- Controller与DTO是接口源；编译后用node tools/harness.mjs contract generate更新契约和SDK，不手改生成目录。
+- 未知结果保留处理中状态，事务不包含网络调用。
+- 代码任务先node tools/harness.mjs task start --scope affected；跨服务或工具变更使用full；检查通过后task finish。
+- 检查结果必须对应当前内容，不删除断言或跳过失败来伪造通过。
+- 复杂变更在docs/plans记录目标、决策与验证；纯咨询无需启动服务。
+- Git与原生Hooks的说明见开发指南；原生事件需要客户端支持和信任。
+- 仅在明确授权后写远端仓库，不提交运行数据、凭据、本机依赖与JDK。

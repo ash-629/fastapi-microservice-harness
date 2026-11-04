@@ -44,4 +44,4 @@ Order的schema版本0→1在事务内增加两个可空字段：cancel_requested
 
 公开订单模型包含CANCEL_PENDING/CANCELLED，库存模型包含RELEASED。修改接口模型后需重新生成OpenAPI与TypeScript SDK，并同步页面、Mock和测试。
 
-相关测试位于`tests/test_cancellation.py`、`tests/test_integration.py`以及`web/tests/cancellation.spec.ts`。
+相关测试位于两个服务的`src/test/java`、`tools/tests/http.test.mjs`以及`web/tests/cancellation.spec.ts`。

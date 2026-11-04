@@ -2,41 +2,40 @@
 
 ## 模块
 
-|模块|职责|存储与依赖|
+|模块|职责|依赖|
 |---|---|---|
-|Order Service|订单、请求幂等、取消状态和恢复任务|独立SQLite，通过HTTP调用库存|
-|Inventory Service|商品、可用库存、库存占用和释放幂等|独立SQLite|
-|Vue应用|商品查询、下单、筛选、分页和订单详情|调用生成SDK，Vite代理转发API|
-|harness CLI|环境诊断、运行、契约、检查和源码归档|独立于业务运行的开发工具|
+|orders|下单、幂等、取消、分页与恢复调度|独立SQLite，HTTP调用库存|
+|inventory|商品、可用库存、占用与释放|独立SQLite|
+|common|严格JSON、校验、统一错误、请求关联和事务工具|Spring Web、Bean Validation、SQLite JDBC|
+|web|商品与订单页面、生成SDK、MSW|Vue、TypeScript、Vite|
+|tools|启动、检查、契约、Hooks与归档|Node及锁定的开发依赖|
 
-两个Python服务是uv workspace成员，分别声明依赖，共享uv.lock。前端依赖由package-lock.json固定。服务不直接导入对方业务包，不访问对方数据库。
+服务各自构建可执行Spring Boot JAR。common不包含业务表，不依赖业务服务。模块边界检查拒绝跨服务import和Maven依赖。
 
 ## 下单
 
-Order先持久化PENDING_INVENTORY，再调用库存接口。库存使用条件UPDATE保证数量非负，在同一写事务中保存幂等结果。相同订单ID重放结果，不重复扣库存；业务拒绝也持久化。
+Order先持久化PENDING_INVENTORY，再调用库存。Inventory以BEGIN IMMEDIATE和条件UPDATE，在同一事务扣库存并保存请求摘要和占用结果。相同订单ID重放结果，拒绝也持久化。
 
-Order收到匹配且有效的RESERVED结果后改为CONFIRMED，明确业务拒绝转为REJECTED。网络异常、未知错误和无效响应保留处理中，不能推断库存操作失败。
+Order严格核对订单ID、商品ID、数量、状态和拒绝码，匹配的RESERVED转CONFIRMED，明确业务拒绝转REJECTED。网络异常或无效响应保留处理中，不推断库存操作失败。
 
-## 取消
+## 取消与恢复
 
-CONFIRMED先持久化为CANCEL_PENDING，再请求库存释放。库存加回数量和RESERVED→RELEASED在同一事务完成。重复释放及迟到占用请求均重放结果。
+CONFIRMED先持久化CANCEL_PENDING，再请求释放。库存加回与RESERVED转RELEASED在同一事务完成。重复释放或迟到占用不能再次修改库存。Order核对RELEASED后条件更新CANCELLED。
 
-Order确认RELEASED后改为CANCELLED。具体状态、重试和数据库升级见[取消与库存释放](cancellation.md)。
+调度器每秒扫描到期记录，每批最多20条。技术失败采用有界退避，五次后标needs_attention并保留处理中。重放原请求可继续尝试；重启自动扫描未超限记录。具体协议见[取消与库存释放](cancellation.md)。
 
-## 一致性与恢复
+## 存储
 
-- 写事务使用数据库约束及短事务，网络调用在事务外。
-- 客户端幂等键为UUID；同键不同内容返回409。
-- 下单和取消的处理中状态保存在数据库中，服务重启后继续处理。
-- 自动重试有次数上限，达到上限后标needs_attention，支持显式reconcile。
-- 条件状态更新防止迟到结果覆盖终态；列表及total在同一读事务中查询。
+每次操作使用独立JDBC连接，短事务结束即关闭。WAL改善读写协作，busy_timeout为5秒；锁等待失败不作为业务拒绝。网络调用位于事务外，条件更新保护终态。列表与total在同一读事务内查询。
 
-## 接口边界
+schema版本0到1在事务中增加取消时间字段，旧订单、幂等键和请求摘要保持兼容；未知更高版本拒绝启动。
 
-请求/响应由Pydantic模型定义，HTTP错误返回统一结构。schemas与路由是接口源，OpenAPI和SDK为生成产物。离线导出不启动服务、不创建数据库、不请求网络。
+## 接口与可观察性
 
-请求日志提供request_id、服务名、路径、状态码和耗时；请求ID沿服务调用传递。业务错误不返回原始异常文本。
+Controller、DTO和注解为接口源。springdoc从隔离进程导出OpenAPI，SDK由契约生成。导出使用临时数据库，不操作本地数据。未知字段和错误类型拒绝，HTTP错误使用统一结构，原始异常文本不返回客户端。
+
+X-Request-ID验证为UUID，否则生成新值。响应与结构化日志携带请求关联，Order沿HTTP调用传至Inventory。
 
 ## 运行范围
 
-应用默认绑定本机回环地址，使用合成商品数据。SQLite适用于本地运行和功能测试，写入并发受单写事务限制。认证、支付、占用过期和生产部署需要独立设计。
+默认回环地址与合成商品数据。SQLite仍有单写事务限制，并发正确性测试不代表容量指标。认证、支付与生产部署需独立设计。

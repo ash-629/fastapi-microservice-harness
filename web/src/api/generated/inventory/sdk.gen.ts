@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetProductData, GetProductErrors, GetProductResponses, GetReservationData, GetReservationErrors, GetReservationResponses, ListProductsData, ListProductsErrors, ListProductsResponses, LiveData, LiveErrors, LiveResponses, PutReservationData, PutReservationErrors, PutReservationResponses, ReadyData, ReadyErrors, ReadyResponses, ReleaseReservationData, ReleaseReservationErrors, ReleaseReservationResponses } from './types.gen';
+import type { GetProductData, GetProductErrors, GetProductResponses, GetReservationData, GetReservationErrors, GetReservationResponses, ListProductsData, ListProductsErrors, ListProductsResponses, LiveData, LiveErrors, PutReservationData, PutReservationErrors, PutReservationResponses, ReadyData, ReadyErrors, ReleaseReservationData, ReleaseReservationErrors, ReleaseReservationResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -18,34 +18,16 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
-/**
- * Products
- */
 export const listProducts = <ThrowOnError extends boolean = false>(options?: Options<ListProductsData, ThrowOnError>): RequestResult<ListProductsResponses, ListProductsErrors, ThrowOnError> => (options?.client ?? client).get<ListProductsResponses, ListProductsErrors, ThrowOnError>({ url: '/api/v1/products', ...options });
 
-/**
- * Product
- */
 export const getProduct = <ThrowOnError extends boolean = false>(options: Options<GetProductData, ThrowOnError>): RequestResult<GetProductResponses, GetProductErrors, ThrowOnError> => (options.client ?? client).get<GetProductResponses, GetProductErrors, ThrowOnError>({ url: '/api/v1/products/{product_id}', ...options });
 
-/**
- * Live
- */
-export const live = <ThrowOnError extends boolean = false>(options?: Options<LiveData, ThrowOnError>): RequestResult<LiveResponses, LiveErrors, ThrowOnError> => (options?.client ?? client).get<LiveResponses, LiveErrors, ThrowOnError>({ url: '/health/live', ...options });
+export const live = <ThrowOnError extends boolean = false>(options?: Options<LiveData, ThrowOnError>): RequestResult<unknown, LiveErrors, ThrowOnError> => (options?.client ?? client).get<unknown, LiveErrors, ThrowOnError>({ url: '/health/live', ...options });
 
-/**
- * Ready
- */
-export const ready = <ThrowOnError extends boolean = false>(options?: Options<ReadyData, ThrowOnError>): RequestResult<ReadyResponses, ReadyErrors, ThrowOnError> => (options?.client ?? client).get<ReadyResponses, ReadyErrors, ThrowOnError>({ url: '/health/ready', ...options });
+export const ready = <ThrowOnError extends boolean = false>(options?: Options<ReadyData, ThrowOnError>): RequestResult<unknown, ReadyErrors, ThrowOnError> => (options?.client ?? client).get<unknown, ReadyErrors, ThrowOnError>({ url: '/health/ready', ...options });
 
-/**
- * Reservation
- */
 export const getReservation = <ThrowOnError extends boolean = false>(options: Options<GetReservationData, ThrowOnError>): RequestResult<GetReservationResponses, GetReservationErrors, ThrowOnError> => (options.client ?? client).get<GetReservationResponses, GetReservationErrors, ThrowOnError>({ url: '/internal/v1/reservations/{order_id}', ...options });
 
-/**
- * Reserve
- */
 export const putReservation = <ThrowOnError extends boolean = false>(options: Options<PutReservationData, ThrowOnError>): RequestResult<PutReservationResponses, PutReservationErrors, ThrowOnError> => (options.client ?? client).put<PutReservationResponses, PutReservationErrors, ThrowOnError>({
     url: '/internal/v1/reservations/{order_id}',
     ...options,
@@ -55,9 +37,6 @@ export const putReservation = <ThrowOnError extends boolean = false>(options: Op
     }
 });
 
-/**
- * Release
- */
 export const releaseReservation = <ThrowOnError extends boolean = false>(options: Options<ReleaseReservationData, ThrowOnError>): RequestResult<ReleaseReservationResponses, ReleaseReservationErrors, ThrowOnError> => (options.client ?? client).put<ReleaseReservationResponses, ReleaseReservationErrors, ThrowOnError>({
     url: '/internal/v1/reservations/{order_id}/release',
     ...options,

@@ -5,8 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --locked python -m harness.hooks SessionStart",
-            "command_windows": "python -m uv run --locked python -m harness.hooks SessionStart",
+            "command": "node tools/harness.mjs hook SessionStart",
+            "command_windows": "node tools/harness.mjs hook SessionStart",
             "timeout": 30
           }
         ]
@@ -17,8 +17,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --locked python -m harness.hooks PostToolUse",
-            "command_windows": "python -m uv run --locked python -m harness.hooks PostToolUse",
+            "command": "node tools/harness.mjs hook PostToolUse",
+            "command_windows": "node tools/harness.mjs hook PostToolUse",
             "timeout": 30
           }
         ]
@@ -29,8 +29,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --locked python -m harness.hooks Stop",
-            "command_windows": "python -m uv run --locked python -m harness.hooks Stop",
+            "command": "node tools/harness.mjs hook Stop",
+            "command_windows": "node tools/harness.mjs hook Stop",
             "timeout": 30
           }
         ]

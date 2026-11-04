@@ -4,116 +4,41 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
-/**
- * Error
- */
 export type Error = {
     error: ErrorDetail;
-    /**
-     * Request Id
-     */
     request_id: string;
 };
 
-/**
- * ErrorDetail
- */
 export type ErrorDetail = {
-    /**
-     * Code
-     */
     code: string;
-    /**
-     * Details
-     */
-    details?: {
+    details: {
         [key: string]: unknown;
     };
-    /**
-     * Message
-     */
     message: string;
 };
 
-/**
- * Order
- */
 export type Order = {
-    /**
-     * Cancel Requested At
-     */
     cancel_requested_at?: string | null;
-    /**
-     * Cancelled At
-     */
     cancelled_at?: string | null;
-    /**
-     * Created At
-     */
     created_at: string;
-    /**
-     * Needs Attention
-     */
     needs_attention: boolean;
-    /**
-     * Order Id
-     */
     order_id: string;
-    /**
-     * Product Id
-     */
     product_id: string;
-    /**
-     * Quantity
-     */
     quantity: number;
-    /**
-     * Rejection Code
-     */
     rejection_code: string | null;
-    /**
-     * Status
-     */
     status: 'PENDING_INVENTORY' | 'CONFIRMED' | 'REJECTED' | 'CANCEL_PENDING' | 'CANCELLED';
-    /**
-     * Updated At
-     */
     updated_at: string;
 };
 
-/**
- * OrderPage
- */
 export type OrderPage = {
-    /**
-     * Items
-     */
     items: Array<Order>;
-    /**
-     * Limit
-     */
     limit: number;
-    /**
-     * Offset
-     */
     offset: number;
-    /**
-     * Total
-     */
     total: number;
 };
 
-/**
- * Request
- */
 export type Request = {
-    /**
-     * Product Id
-     */
     product_id: string;
-    /**
-     * Quantity
-     */
     quantity: number;
 };
 
@@ -121,17 +46,8 @@ export type ListOrdersData = {
     body?: never;
     path?: never;
     query?: {
-        /**
-         * Status
-         */
-        status?: 'PENDING_INVENTORY' | 'CONFIRMED' | 'REJECTED' | 'CANCEL_PENDING' | 'CANCELLED' | null;
-        /**
-         * Limit
-         */
+        status?: 'PENDING_INVENTORY' | 'CONFIRMED' | 'REJECTED' | 'CANCEL_PENDING' | 'CANCELLED';
         limit?: number;
-        /**
-         * Offset
-         */
         offset?: number;
     };
     url: '/api/v1/orders';
@@ -147,7 +63,7 @@ export type ListOrdersErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -164,7 +80,7 @@ export type ListOrdersError = ListOrdersErrors[keyof ListOrdersErrors];
 
 export type ListOrdersResponses = {
     /**
-     * Successful Response
+     * OK
      */
     200: OrderPage;
 };
@@ -174,9 +90,6 @@ export type ListOrdersResponse = ListOrdersResponses[keyof ListOrdersResponses];
 export type CreateOrderData = {
     body: Request;
     headers: {
-        /**
-         * Idempotency-Key
-         */
         'idempotency-key': string;
     };
     path?: never;
@@ -194,7 +107,7 @@ export type CreateOrderErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -215,7 +128,7 @@ export type CreateOrderResponses = {
      */
     200: Order;
     /**
-     * Successful Response
+     * Created
      */
     201: Order;
     /**
@@ -229,9 +142,6 @@ export type CreateOrderResponse = CreateOrderResponses[keyof CreateOrderResponse
 export type GetOrderData = {
     body?: never;
     path: {
-        /**
-         * Order Id
-         */
         order_id: string;
     };
     query?: never;
@@ -248,7 +158,7 @@ export type GetOrderErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -265,7 +175,7 @@ export type GetOrderError = GetOrderErrors[keyof GetOrderErrors];
 
 export type GetOrderResponses = {
     /**
-     * Successful Response
+     * OK
      */
     200: Order;
 };
@@ -275,9 +185,6 @@ export type GetOrderResponse = GetOrderResponses[keyof GetOrderResponses];
 export type CancelOrderData = {
     body?: never;
     path: {
-        /**
-         * Order Id
-         */
         order_id: string;
     };
     query?: never;
@@ -294,7 +201,7 @@ export type CancelOrderErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -311,7 +218,7 @@ export type CancelOrderError = CancelOrderErrors[keyof CancelOrderErrors];
 
 export type CancelOrderResponses = {
     /**
-     * Successful Response
+     * OK
      */
     200: Order;
     /**
@@ -339,7 +246,7 @@ export type LiveErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -353,13 +260,6 @@ export type LiveErrors = {
 };
 
 export type LiveError = LiveErrors[keyof LiveErrors];
-
-export type LiveResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
 
 export type ReadyData = {
     body?: never;
@@ -378,7 +278,7 @@ export type ReadyErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -392,10 +292,3 @@ export type ReadyErrors = {
 };
 
 export type ReadyError = ReadyErrors[keyof ReadyErrors];
-
-export type ReadyResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};

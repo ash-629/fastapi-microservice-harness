@@ -1,57 +1,41 @@
 # 测试
 
-## 运行检查
+## 执行
 
 ```shell
-python -m uv run --locked harness check --scope affected
+node tools/harness.mjs down
 npm --prefix web exec -- playwright install chromium
-python -m uv run --locked harness check --scope full
+node tools/harness.mjs check --scope full
 ```
-
-`full`包含真实HTTP与浏览器场景，运行前先用`harness down`停止本地服务。测试使用独立数据库，结束时关闭自行启动的进程。
-
-检查范围：
 
 |范围|内容|
 |---|---|
-|quick|锁文件、Ruff、文档链接、架构约束、契约与SDK、mypy、前端构建和格式|
-|affected|quick及Python测试；当前仓库较小，保守运行全部Python测试|
-|full|affected及Playwright浏览器和MSW协议用例|
+|quick|文档、模块边界、Java编译与格式、Node工具和HTTP测试、契约、SDK、前端构建与格式|
+|affected|quick及Java业务测试；当前项目较小，保守运行全部业务测试|
+|full|affected及Playwright真实服务、浏览器与MSW用例|
 
-## Python测试
+## Java与HTTP
 
-- 正常下单、库存不足与统一错误响应。
-- 数量、商品ID、UUID和分页参数边界。
-- 同一幂等键的串行/并发请求，以及同键不同内容冲突。
-- 有限库存的并发扣减、重复占用与拒绝结果重放。
-- 下游超时、响应丢失、错误结构、重试耗尽及进程重启恢复。
-- 正常取消、并发取消、重复释放和迟到的占用请求。
-- 释放结果校验、取消处理中恢复、旧数据库升级及终态保护。
-- 检查指纹、任务范围、Hook协议、Git暂存快照和源码归档。
+JUnit覆盖并发库存保护、占用和释放幂等、冲突与拒绝重放、并发同键下单、取消状态和时间保护、严格下游校验、响应丢失、重试上限、重启恢复、旧schema与幂等摘要兼容、分页和终态保护。
 
-## 前端测试
-
-Playwright覆盖空态、筛选、真实服务下单与取消、库存变化、损坏存储、迟到响应、轮询生命周期、失败重试和移动端长文本。MSW协议用例验证Mock的幂等、库存变化、取消、错误与分页行为。
+Maven运行Spotless、编译和JUnit，测试使用临时目录与真实JDBC连接。node:test验证指纹、范围、Hook生命周期、模块边界、文档和归档；HTTP测试使用真实Java进程、动态端口与独立数据库，验证参数、统一错误、请求ID、业务HTTP状态、下单、取消及进程重启恢复，并按OpenAPI校验响应。
 
 ```shell
-cd web
-npm exec -- playwright test
+npm test
 ```
 
-Mock与真实服务分别验证，Mock通过不代表真实服务链路通过。
+运行前先构建Java服务。测试关闭自行启动的进程。
 
-## 检查结果
+## 前端
+
+Playwright覆盖空态、筛选、真实下单和取消、库存变化、损坏存储、迟到响应、轮询生命周期、失败重试与移动端长文本。MSW协议用例验证幂等、库存、取消、错误和分页。完整检查启动真实Java后端。
+
+## 结果与边界
 
 ```shell
-python -m uv run --locked harness report latest
+node tools/harness.mjs report latest
 ```
 
-结果记录检查范围、各项状态、耗时和内容指纹。`current=false`表示源码或关键工具版本已变化，需要重新运行检查。quick不能代替full；失败或跳过的检查不能计为通过。
+结果保存范围、检查项、耗时、源码与Node版本指纹；current=false需重新检查，quick不能代替full。原始结果在忽略目录.harness。远端结果见[Actions](https://github.com/ash-629/fastapi-microservice-harness/actions)。
 
-原始结果位于忽略目录`.harness/`。GitHub上的结果见[Actions](https://github.com/ash-629/fastapi-microservice-harness/actions)。
-
-## 验证边界
-
-CI在Linux运行完整检查，本地开发环境也使用Windows。原生Codex Hook的配置读取和事件支持取决于客户端版本及信任设置，处理器测试不等于客户端事件分发测试。
-
-项目没有生产容量、访问控制或完整安全审计的验证结论。SQLite并发测试关注库存正确性，不作为吞吐能力指标。
+CI使用Linux与JDK 21，本地也在Windows运行。原生Hook处理器测试不等于客户端事件分发测试；未包含生产容量与完整安全审计的验证结论。

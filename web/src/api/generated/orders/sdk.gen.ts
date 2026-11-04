@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CancelOrderData, CancelOrderErrors, CancelOrderResponses, CreateOrderData, CreateOrderErrors, CreateOrderResponses, GetOrderData, GetOrderErrors, GetOrderResponses, ListOrdersData, ListOrdersErrors, ListOrdersResponses, LiveData, LiveErrors, LiveResponses, ReadyData, ReadyErrors, ReadyResponses } from './types.gen';
+import type { CancelOrderData, CancelOrderErrors, CancelOrderResponses, CreateOrderData, CreateOrderErrors, CreateOrderResponses, GetOrderData, GetOrderErrors, GetOrderResponses, ListOrdersData, ListOrdersErrors, ListOrdersResponses, LiveData, LiveErrors, ReadyData, ReadyErrors } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -18,14 +18,8 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
-/**
- * Orders
- */
 export const listOrders = <ThrowOnError extends boolean = false>(options?: Options<ListOrdersData, ThrowOnError>): RequestResult<ListOrdersResponses, ListOrdersErrors, ThrowOnError> => (options?.client ?? client).get<ListOrdersResponses, ListOrdersErrors, ThrowOnError>({ url: '/api/v1/orders', ...options });
 
-/**
- * Create
- */
 export const createOrder = <ThrowOnError extends boolean = false>(options: Options<CreateOrderData, ThrowOnError>): RequestResult<CreateOrderResponses, CreateOrderErrors, ThrowOnError> => (options.client ?? client).post<CreateOrderResponses, CreateOrderErrors, ThrowOnError>({
     url: '/api/v1/orders',
     ...options,
@@ -35,22 +29,10 @@ export const createOrder = <ThrowOnError extends boolean = false>(options: Optio
     }
 });
 
-/**
- * Order
- */
 export const getOrder = <ThrowOnError extends boolean = false>(options: Options<GetOrderData, ThrowOnError>): RequestResult<GetOrderResponses, GetOrderErrors, ThrowOnError> => (options.client ?? client).get<GetOrderResponses, GetOrderErrors, ThrowOnError>({ url: '/api/v1/orders/{order_id}', ...options });
 
-/**
- * Cancel
- */
 export const cancelOrder = <ThrowOnError extends boolean = false>(options: Options<CancelOrderData, ThrowOnError>): RequestResult<CancelOrderResponses, CancelOrderErrors, ThrowOnError> => (options.client ?? client).post<CancelOrderResponses, CancelOrderErrors, ThrowOnError>({ url: '/api/v1/orders/{order_id}/cancel', ...options });
 
-/**
- * Live
- */
-export const live = <ThrowOnError extends boolean = false>(options?: Options<LiveData, ThrowOnError>): RequestResult<LiveResponses, LiveErrors, ThrowOnError> => (options?.client ?? client).get<LiveResponses, LiveErrors, ThrowOnError>({ url: '/health/live', ...options });
+export const live = <ThrowOnError extends boolean = false>(options?: Options<LiveData, ThrowOnError>): RequestResult<unknown, LiveErrors, ThrowOnError> => (options?.client ?? client).get<unknown, LiveErrors, ThrowOnError>({ url: '/health/live', ...options });
 
-/**
- * Ready
- */
-export const ready = <ThrowOnError extends boolean = false>(options?: Options<ReadyData, ThrowOnError>): RequestResult<ReadyResponses, ReadyErrors, ThrowOnError> => (options?.client ?? client).get<ReadyResponses, ReadyErrors, ThrowOnError>({ url: '/health/ready', ...options });
+export const ready = <ThrowOnError extends boolean = false>(options?: Options<ReadyData, ThrowOnError>): RequestResult<unknown, ReadyErrors, ThrowOnError> => (options?.client ?? client).get<unknown, ReadyErrors, ThrowOnError>({ url: '/health/ready', ...options });

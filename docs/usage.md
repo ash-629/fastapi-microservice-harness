@@ -2,7 +2,7 @@
 
 ## 启动与访问
 
-在项目根目录运行 `python -m uv run --locked harness up`，然后打开 http://127.0.0.1:5173。
+在项目根目录运行 `node tools/harness.mjs up`，然后打开 http://127.0.0.1:5173。
 
 页面包含商品库存、订单表单、订单列表和详情。订单列表支持状态筛选与分页，点击记录可查看详情。
 
@@ -26,7 +26,7 @@
 重复取消不会重复增加库存。确认中或已拒绝的订单不能取消。处理中的订单可刷新详情查看进度；达到自动重试次数上限后，管理员可以执行：
 
 ```shell
-python -m uv run --locked harness reconcile --order-id <order-id>
+node tools/harness.mjs reconcile --order-id <order-id>
 ```
 
 ## HTTP 示例
@@ -53,7 +53,7 @@ POST /api/v1/orders/{order_id}/cancel
 ## 停止
 
 ```shell
-python -m uv run --locked harness down
+node tools/harness.mjs down
 ```
 
 该命令仅停止本项目记录且身份匹配的进程，不按端口批量终止进程。

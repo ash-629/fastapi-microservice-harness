@@ -4,148 +4,44 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
-/**
- * Error
- */
 export type Error = {
     error: ErrorDetail;
-    /**
-     * Request Id
-     */
     request_id: string;
 };
 
-/**
- * ErrorDetail
- */
 export type ErrorDetail = {
-    /**
-     * Code
-     */
     code: string;
-    /**
-     * Details
-     */
-    details?: {
+    details: {
         [key: string]: unknown;
     };
-    /**
-     * Message
-     */
     message: string;
 };
 
-/**
- * Product
- */
 export type Product = {
-    /**
-     * Available Qty
-     */
     available_qty: number;
-    /**
-     * Name
-     */
     name: string;
-    /**
-     * Product Id
-     */
     product_id: string;
-    /**
-     * Sku
-     */
     sku: string;
-    /**
-     * Updated At
-     */
     updated_at: string;
 };
 
-/**
- * ProductPage
- */
 export type ProductPage = {
-    /**
-     * Items
-     */
     items: Array<Product>;
-    /**
-     * Limit
-     */
     limit: number;
-    /**
-     * Offset
-     */
     offset: number;
-    /**
-     * Total
-     */
     total: number;
 };
 
-/**
- * ReleaseResult
- */
-export type ReleaseResult = {
-    /**
-     * Order Id
-     */
-    order_id: string;
-    /**
-     * Product Id
-     */
-    product_id: string;
-    /**
-     * Quantity
-     */
-    quantity: number;
-    /**
-     * Rejection Code
-     */
-    rejection_code: null;
-    /**
-     * Status
-     */
-    status: 'RELEASED';
-};
-
-/**
- * Request
- */
 export type Request = {
-    /**
-     * Product Id
-     */
     product_id: string;
-    /**
-     * Quantity
-     */
     quantity: number;
 };
 
-/**
- * Reservation
- */
 export type Reservation = {
-    /**
-     * Order Id
-     */
     order_id: string;
-    /**
-     * Product Id
-     */
     product_id: string;
-    /**
-     * Quantity
-     */
     quantity: number;
-    /**
-     * Rejection Code
-     */
     rejection_code: string | null;
-    /**
-     * Status
-     */
     status: 'RESERVED' | 'REJECTED' | 'RELEASED';
 };
 
@@ -153,13 +49,7 @@ export type ListProductsData = {
     body?: never;
     path?: never;
     query?: {
-        /**
-         * Limit
-         */
         limit?: number;
-        /**
-         * Offset
-         */
         offset?: number;
     };
     url: '/api/v1/products';
@@ -175,7 +65,7 @@ export type ListProductsErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -192,7 +82,7 @@ export type ListProductsError = ListProductsErrors[keyof ListProductsErrors];
 
 export type ListProductsResponses = {
     /**
-     * Successful Response
+     * OK
      */
     200: ProductPage;
 };
@@ -202,9 +92,6 @@ export type ListProductsResponse = ListProductsResponses[keyof ListProductsRespo
 export type GetProductData = {
     body?: never;
     path: {
-        /**
-         * Product Id
-         */
         product_id: string;
     };
     query?: never;
@@ -221,7 +108,7 @@ export type GetProductErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -238,7 +125,7 @@ export type GetProductError = GetProductErrors[keyof GetProductErrors];
 
 export type GetProductResponses = {
     /**
-     * Successful Response
+     * OK
      */
     200: Product;
 };
@@ -262,7 +149,7 @@ export type LiveErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -276,13 +163,6 @@ export type LiveErrors = {
 };
 
 export type LiveError = LiveErrors[keyof LiveErrors];
-
-export type LiveResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
 
 export type ReadyData = {
     body?: never;
@@ -301,7 +181,7 @@ export type ReadyErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -316,19 +196,9 @@ export type ReadyErrors = {
 
 export type ReadyError = ReadyErrors[keyof ReadyErrors];
 
-export type ReadyResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
 export type GetReservationData = {
     body?: never;
     path: {
-        /**
-         * Order Id
-         */
         order_id: string;
     };
     query?: never;
@@ -345,7 +215,7 @@ export type GetReservationErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -362,7 +232,7 @@ export type GetReservationError = GetReservationErrors[keyof GetReservationError
 
 export type GetReservationResponses = {
     /**
-     * Successful Response
+     * OK
      */
     200: Reservation;
 };
@@ -372,9 +242,6 @@ export type GetReservationResponse = GetReservationResponses[keyof GetReservatio
 export type PutReservationData = {
     body: Request;
     path: {
-        /**
-         * Order Id
-         */
         order_id: string;
     };
     query?: never;
@@ -391,7 +258,7 @@ export type PutReservationErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -408,7 +275,7 @@ export type PutReservationError = PutReservationErrors[keyof PutReservationError
 
 export type PutReservationResponses = {
     /**
-     * Successful Response
+     * OK
      */
     200: Reservation;
 };
@@ -418,9 +285,6 @@ export type PutReservationResponse = PutReservationResponses[keyof PutReservatio
 export type ReleaseReservationData = {
     body: Request;
     path: {
-        /**
-         * Order Id
-         */
         order_id: string;
     };
     query?: never;
@@ -437,7 +301,7 @@ export type ReleaseReservationErrors = {
      */
     409: Error;
     /**
-     * Unprocessable Content
+     * Unprocessable Entity
      */
     422: Error;
     /**
@@ -454,9 +318,9 @@ export type ReleaseReservationError = ReleaseReservationErrors[keyof ReleaseRese
 
 export type ReleaseReservationResponses = {
     /**
-     * Successful Response
+     * OK
      */
-    200: ReleaseResult;
+    200: Reservation;
 };
 
 export type ReleaseReservationResponse = ReleaseReservationResponses[keyof ReleaseReservationResponses];

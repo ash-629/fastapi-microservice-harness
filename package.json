@@ -1,0 +1,19 @@
+{
+  "name": "order-studio",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "harness": "node tools/harness.mjs",
+    "test": "node --test tools/tests/*.test.mjs",
+    "check": "node tools/harness.mjs check --scope full"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "fflate": "0.8.3"
+  }
+}

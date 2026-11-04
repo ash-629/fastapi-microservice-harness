@@ -7,7 +7,6 @@
             "$ref": "#/components/schemas/ErrorDetail"
           },
           "request_id": {
-            "title": "Request Id",
             "type": "string"
           }
         },
@@ -15,63 +14,54 @@
           "error",
           "request_id"
         ],
-        "title": "Error",
         "type": "object"
       },
       "ErrorDetail": {
         "properties": {
           "code": {
-            "title": "Code",
             "type": "string"
           },
           "details": {
-            "additionalProperties": true,
-            "title": "Details",
+            "additionalProperties": {},
             "type": "object"
           },
           "message": {
-            "title": "Message",
             "type": "string"
           }
         },
         "required": [
           "code",
+          "details",
           "message"
         ],
-        "title": "ErrorDetail",
         "type": "object"
       },
       "Product": {
         "properties": {
           "available_qty": {
-            "title": "Available Qty",
+            "format": "int32",
             "type": "integer"
           },
           "name": {
-            "title": "Name",
             "type": "string"
           },
           "product_id": {
-            "title": "Product Id",
             "type": "string"
           },
           "sku": {
-            "title": "Sku",
             "type": "string"
           },
           "updated_at": {
-            "title": "Updated At",
             "type": "string"
           }
         },
         "required": [
+          "available_qty",
+          "name",
           "product_id",
           "sku",
-          "name",
-          "available_qty",
           "updated_at"
         ],
-        "title": "Product",
         "type": "object"
       },
       "ProductPage": {
@@ -80,63 +70,27 @@
             "items": {
               "$ref": "#/components/schemas/Product"
             },
-            "title": "Items",
             "type": "array"
           },
           "limit": {
-            "title": "Limit",
+            "format": "int32",
             "type": "integer"
           },
           "offset": {
-            "title": "Offset",
+            "format": "int32",
             "type": "integer"
           },
           "total": {
-            "title": "Total",
+            "format": "int32",
             "type": "integer"
           }
         },
         "required": [
           "items",
-          "total",
           "limit",
-          "offset"
+          "offset",
+          "total"
         ],
-        "title": "ProductPage",
-        "type": "object"
-      },
-      "ReleaseResult": {
-        "properties": {
-          "order_id": {
-            "title": "Order Id",
-            "type": "string"
-          },
-          "product_id": {
-            "title": "Product Id",
-            "type": "string"
-          },
-          "quantity": {
-            "title": "Quantity",
-            "type": "integer"
-          },
-          "rejection_code": {
-            "title": "Rejection Code",
-            "type": "null"
-          },
-          "status": {
-            "const": "RELEASED",
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "order_id",
-          "product_id",
-          "quantity",
-          "status",
-          "rejection_code"
-        ],
-        "title": "ReleaseResult",
         "type": "object"
       },
       "Request": {
@@ -144,14 +98,13 @@
         "properties": {
           "product_id": {
             "maxLength": 80,
-            "minLength": 1,
-            "title": "Product Id",
+            "minLength": 0,
             "type": "string"
           },
           "quantity": {
-            "maximum": 99.0,
-            "minimum": 1.0,
-            "title": "Quantity",
+            "format": "int32",
+            "maximum": 99,
+            "minimum": 1,
             "type": "integer"
           }
         },
@@ -159,33 +112,25 @@
           "product_id",
           "quantity"
         ],
-        "title": "Request",
         "type": "object"
       },
       "Reservation": {
         "properties": {
           "order_id": {
-            "title": "Order Id",
             "type": "string"
           },
           "product_id": {
-            "title": "Product Id",
             "type": "string"
           },
           "quantity": {
-            "title": "Quantity",
+            "format": "int32",
             "type": "integer"
           },
           "rejection_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rejection Code"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "enum": [
@@ -193,7 +138,6 @@
               "REJECTED",
               "RELEASED"
             ],
-            "title": "Status",
             "type": "string"
           }
         },
@@ -201,17 +145,16 @@
           "order_id",
           "product_id",
           "quantity",
-          "status",
-          "rejection_code"
+          "rejection_code",
+          "status"
         ],
-        "title": "Reservation",
         "type": "object"
       }
     }
   },
   "info": {
-    "title": "inventory Service",
-    "version": "0.1.0"
+    "title": "inventory",
+    "version": "2.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -225,9 +168,9 @@
             "required": false,
             "schema": {
               "default": 20,
+              "format": "int32",
               "maximum": 100,
               "minimum": 1,
-              "title": "Limit",
               "type": "integer"
             }
           },
@@ -237,8 +180,8 @@
             "required": false,
             "schema": {
               "default": 0,
+              "format": "int32",
               "minimum": 0,
-              "title": "Offset",
               "type": "integer"
             }
           }
@@ -246,17 +189,17 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ProductPage"
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "OK"
           },
           "404": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -266,7 +209,7 @@
           },
           "409": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -276,17 +219,17 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           },
           "500": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -296,7 +239,7 @@
           },
           "503": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -305,7 +248,9 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Products"
+        "tags": [
+          "inventory-controller"
+        ]
       }
     },
     "/api/v1/products/{product_id}": {
@@ -317,7 +262,6 @@
             "name": "product_id",
             "required": true,
             "schema": {
-              "title": "Product Id",
               "type": "string"
             }
           }
@@ -325,17 +269,17 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Product"
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "OK"
           },
           "404": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -345,7 +289,7 @@
           },
           "409": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -355,17 +299,17 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           },
           "500": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -375,7 +319,7 @@
           },
           "503": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -384,24 +328,18 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Product"
+        "tags": [
+          "inventory-controller"
+        ]
       }
     },
     "/health/live": {
       "get": {
         "operationId": "live",
         "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
           "404": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -411,7 +349,7 @@
           },
           "409": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -421,17 +359,17 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           },
           "500": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -441,7 +379,7 @@
           },
           "503": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -450,24 +388,18 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Live"
+        "tags": [
+          "inventory-controller"
+        ]
       }
     },
     "/health/ready": {
       "get": {
         "operationId": "ready",
         "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
           "404": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -477,7 +409,7 @@
           },
           "409": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -487,17 +419,17 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           },
           "500": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -507,7 +439,7 @@
           },
           "503": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -516,7 +448,9 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Ready"
+        "tags": [
+          "inventory-controller"
+        ]
       }
     },
     "/internal/v1/reservations/{order_id}": {
@@ -528,8 +462,6 @@
             "name": "order_id",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "title": "Order Id",
               "type": "string"
             }
           }
@@ -537,17 +469,17 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Reservation"
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "OK"
           },
           "404": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -557,7 +489,7 @@
           },
           "409": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -567,17 +499,17 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           },
           "500": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -587,7 +519,7 @@
           },
           "503": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -596,7 +528,9 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Reservation"
+        "tags": [
+          "inventory-controller"
+        ]
       },
       "put": {
         "operationId": "put_reservation",
@@ -606,8 +540,6 @@
             "name": "order_id",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "title": "Order Id",
               "type": "string"
             }
           }
@@ -625,17 +557,17 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Reservation"
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "OK"
           },
           "404": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -645,7 +577,7 @@
           },
           "409": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -655,17 +587,17 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           },
           "500": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -675,7 +607,7 @@
           },
           "503": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -684,7 +616,9 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Reserve"
+        "tags": [
+          "inventory-controller"
+        ]
       }
     },
     "/internal/v1/reservations/{order_id}/release": {
@@ -696,8 +630,6 @@
             "name": "order_id",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "title": "Order Id",
               "type": "string"
             }
           }
@@ -715,17 +647,17 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ReleaseResult"
+                  "$ref": "#/components/schemas/Reservation"
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "OK"
           },
           "404": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -735,7 +667,7 @@
           },
           "409": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -745,17 +677,17 @@
           },
           "422": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
               }
             },
-            "description": "Unprocessable Content"
+            "description": "Unprocessable Entity"
           },
           "500": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -765,7 +697,7 @@
           },
           "503": {
             "content": {
-              "application/json": {
+              "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
@@ -774,8 +706,15 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Release"
+        "tags": [
+          "inventory-controller"
+        ]
       }
     }
-  }
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ]
 }

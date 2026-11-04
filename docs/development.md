@@ -1,67 +1,61 @@
 # 开发指南
 
-## 环境
+## 环境与构建
 
-Python最低3.12，uv按.python-version选择版本。Node需满足^20.19.0或>=22.12.0。Python与前端依赖分别使用uv.lock和web/package-lock.json。
+JDK 21+，Node.js 22.12+。JAVA_HOME指向JDK根目录。Maven Wrapper固定3.9.11，Spring Boot BOM与显式版本固定在pom.xml，两个npm锁文件进入版本控制。
 
-初次安装见根目录README。服务进程、运行数据和日志位于.runtime，检查结果位于.harness；这些目录不进入版本控制。
+```shell
+npm ci
+npm ci --prefix web
+```
+
+Windows执行 .\mvnw.cmd verify，macOS/Linux执行 ./mvnw verify。格式化使用Maven目标spotless:apply。IDE导入根pom.xml识别三个模块，两个可执行JAR位于services/orders/target和services/inventory/target。
 
 ## 命令
 
-所有命令使用前缀`python -m uv run --locked harness`。
+所有命令使用前缀node tools/harness.mjs。
 
 |参数|用途|
 |---|---|
-|doctor|检查Node/npm/Git、依赖、契约、锁文件和端口|
-|up / down|启动或停止两个API及前端|
+|doctor|检查Java、Maven、Node/npm和必要文件|
+|up / down|启动或停止两个服务与前端|
+|smoke|只读检查服务就绪|
+|smoke --isolated|使用临时数据库和动态端口验证真实HTTP流程|
 |seed|插入缺失商品，不重置已有库存|
-|smoke|只读检查活动服务就绪|
-|smoke --isolated|临时数据库与动态端口的HTTP验证|
-|reconcile --order-id UUID|对指定处理中订单尝试恢复|
-|contract generate|离线导出OpenAPI并生成SDK|
-|contract check|临时生成并比较契约及SDK|
-|check --scope quick/affected/full|分层检查，详见测试说明|
-|report latest|查看最近结果及内容指纹是否仍有效|
-|hooks install|配置当前Git仓库的本地Hooks|
-|staged|在隔离目录检查Git暂存快照|
-|task start / task finish|声明代码任务范围、检查当前有效结果|
-|package --output 路径.zip|完整检查通过后创建源码归档，不覆盖已有文件|
+|reconcile --order-id UUID|对指定处理中订单继续尝试恢复|
+|contract generate / check|从隔离Java进程导出OpenAPI并生成或比较SDK|
+|check --scope quick/affected/full|分层检查|
+|report latest|最近检查状态与指纹有效性|
+|hooks install|配置当前仓库本地Git Hooks|
+|staged|隔离编译和验证Git暂存快照|
+|task start / task finish|声明任务范围并核对当前结果|
+|package --output 路径.zip|根据当前full结果创建源码归档，不覆盖已有文件|
 
-## 修改接口
+## 接口与前端协作
 
-1. 定义可观察行为，识别提供方和消费者。
-2. 修改schemas、路由和错误模型。
-3. 运行contract generate，查看契约及SDK差异。
-4. 同步前端、Mock和测试。
-5. 执行相应检查；跨服务或状态机变更使用full。
+1. 定义行为和消费者影响。
+2. 修改Java DTO、Controller与业务测试。
+3. 用Maven Wrapper执行package，生成新的服务JAR。
+4. 运行contract generate，检查契约和SDK差异。
+5. 同步前端、MSW与测试，执行相应检查。
 
-生成文件不手改。结构契约不能替代业务行为测试。
+路径和JSON保持snake_case，SDK生成camelCase函数。Bean Validation与严格Jackson解析拒绝未知字段、字符串数量、小数数量和非法UUID。
 
-## 前端与Mock
-
-单独启动前端：在web目录执行`npm run dev`。设置VITE_MOCK=1可使用MSW模式，真实模式不设置该值。
-
-测试前端类型与格式：
-
-```shell
-npm --prefix web run build
-npm --prefix web run format:check
-```
+web目录中运行npm run dev；VITE_MOCK=1启用MSW，真实模式通过Vite代理访问服务。前端调用生成SDK，类型检查、Mock与真实HTTP测试共同验证协作。
 
 ## Skills与Hooks
 
-项目提供feature-development、api-change、bugfix三个流程。复杂变更可在docs/plans记录目标、约束和验证结果。
+feature-development、api-change、bugfix提供简短流程。复杂变更记录在docs/plans。代码任务先task start，再修改和检查，最后task finish。Stop处理器核对范围、PASS状态、源码和Node版本指纹；阻止一次无有效结果的结束，第二次报告未解决原因以防循环。纯咨询不创建任务。
 
-代码任务先task start，再修改与检查，最后task finish。Stop处理器验证检查范围、PASS状态和内容指纹；缺少证据时请求续跑一次，第二次报告未通过原因以防循环。纯咨询不建立代码任务。
+pre-commit将Git index导出到独立目录，编译Java并验证文档、模块边界、OpenAPI与SDK。源码完全来自暂存快照，本机依赖可以复用，不stash或覆盖工作区。pre-push运行affected，CI验证实际推送内容。原生Codex事件取决于客户端版本和信任设置。
 
-原生Codex Hooks需要客户端支持并信任配置；Git Hooks不依赖原生事件。pre-commit从index导出源码进行静态、架构和契约检查，不stash或覆盖工作区；pre-push运行工作区affected检查。远端CI验证实际推送的内容。
+从ZIP使用Git Hooks时先git init，暂存源码，再hooks install。
 
-从源码ZIP开始使用Git时，先git init，再hooks install；提交前暂存所需项目文件。
+## 运行与故障定位
 
-## 常见问题
+DB_PATH默认为.runtime/orders.sqlite3或inventory.sqlite3，PORT分别默认为8001和8002。INVENTORY_URL默认http://127.0.0.1:8002，RECOVERY_ENABLED默认true。两个服务绑定127.0.0.1；java -jar运行时可用Spring Boot参数覆盖。
 
-- 端口被占用：doctor显示占用状态；不会自动终止其他进程。
-- full测试端口冲突：先down，再运行完整检查。
-- 契约漂移：核对接口源，再运行contract generate并检查差异。
-- 报告过期：修改内容后重新执行检查，不复用旧的通过结果。
-- 订单持续处理中：查看request_id及服务日志，需要时执行指定订单的reconcile。
+- 系统仍使用旧JRE：设置JAVA_HOME，确认存在bin/javac。
+- 端口冲突：先down，工具不会按端口批量终止其他进程。
+- 契约漂移：先重新编译，再生成契约并检查差异。
+- 记录达到重试上限：查看request_id与日志，重放原下单或取消请求以继续尝试幂等恢复。
