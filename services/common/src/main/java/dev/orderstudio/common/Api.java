@@ -11,6 +11,11 @@ import java.util.*;
 public final class Api {
   private Api() {}
 
+  @Schema(
+      name = "Health",
+      requiredProperties = {"status"})
+  public record Health(String status) {}
+
   @Schema(name = "Request", additionalProperties = Schema.AdditionalPropertiesValue.FALSE)
   @JsonPropertyOrder({"product_id", "quantity"})
   public record StockRequest(

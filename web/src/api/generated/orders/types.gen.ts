@@ -17,6 +17,10 @@ export type ErrorDetail = {
     message: string;
 };
 
+export type Health = {
+    status: string;
+};
+
 export type Order = {
     cancel_requested_at?: string | null;
     cancelled_at?: string | null;
@@ -59,9 +63,21 @@ export type ListOrdersErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -103,9 +119,21 @@ export type CreateOrderErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -154,9 +182,21 @@ export type GetOrderErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -197,9 +237,21 @@ export type CancelOrderErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -242,9 +294,21 @@ export type LiveErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -261,6 +325,15 @@ export type LiveErrors = {
 
 export type LiveError = LiveErrors[keyof LiveErrors];
 
+export type LiveResponses = {
+    /**
+     * OK
+     */
+    200: Health;
+};
+
+export type LiveResponse = LiveResponses[keyof LiveResponses];
+
 export type ReadyData = {
     body?: never;
     path?: never;
@@ -274,9 +347,21 @@ export type ReadyErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -292,3 +377,12 @@ export type ReadyErrors = {
 };
 
 export type ReadyError = ReadyErrors[keyof ReadyErrors];
+
+export type ReadyResponses = {
+    /**
+     * OK
+     */
+    200: Health;
+};
+
+export type ReadyResponse = ReadyResponses[keyof ReadyResponses];

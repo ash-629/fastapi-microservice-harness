@@ -17,6 +17,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @ApiResponses({
   @ApiResponse(
+      responseCode = "405",
+      content = @Content(schema = @Schema(implementation = ErrorEnvelope.class))),
+  @ApiResponse(
+      responseCode = "406",
+      content = @Content(schema = @Schema(implementation = ErrorEnvelope.class))),
+  @ApiResponse(
+      responseCode = "415",
+      content = @Content(schema = @Schema(implementation = ErrorEnvelope.class))),
+  @ApiResponse(
       responseCode = "404",
       content = @Content(schema = @Schema(implementation = ErrorEnvelope.class))),
   @ApiResponse(
@@ -41,15 +50,21 @@ public class OrderController {
 
   @GetMapping("/health/live")
   @Operation(operationId = "live")
-  public Map<String, String> live() {
-    return Map.of("status", "ok");
+  @ApiResponse(
+      responseCode = "200",
+      content = @Content(schema = @Schema(implementation = Api.Health.class)))
+  public Api.Health live() {
+    return new Api.Health("ok");
   }
 
   @GetMapping("/health/ready")
   @Operation(operationId = "ready")
-  public Map<String, String> ready() {
+  @ApiResponse(
+      responseCode = "200",
+      content = @Content(schema = @Schema(implementation = Api.Health.class)))
+  public Api.Health ready() {
     service.ready();
-    return Map.of("status", "ready");
+    return new Api.Health("ready");
   }
 
   @PostMapping("/api/v1/orders")

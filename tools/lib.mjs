@@ -59,7 +59,10 @@ export function fingerprint(root = ROOT) {
 }
 export function readJson(path) {
   try {
-    return JSON.parse(readFileSync(path, "utf8"));
+    const value = JSON.parse(readFileSync(path, "utf8"));
+    return value && typeof value === "object" && !Array.isArray(value)
+      ? value
+      : {};
   } catch {
     return {};
   }
@@ -151,7 +154,10 @@ export function npm(args, options = {}) {
   run(process.platform === "win32" ? "npm.cmd" : "npm", args, options);
 }
 export function jar(service) {
-  return join(ROOT, `services/${service}/target/${service}-2.0.0.jar`);
+  const version = readJson(join(ROOT, "package.json")).version;
+  if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version))
+    throw Error("Invalid project version");
+  return join(ROOT, `services/${service}/target/${service}-${version}.jar`);
 }
 export async function waitReady(url, child, timeout = 45000) {
   const end = Date.now() + timeout;
@@ -251,12 +257,25 @@ export const REQUIRED = {
   ],
 };
 export function verified(report, scope, current) {
+  if (
+    !report ||
+    typeof report !== "object" ||
+    Array.isArray(report) ||
+    !Object.hasOwn(REQUIRED, scope)
+  )
+    return false;
   const checks = report.checks || [];
   return (
     report.status === "PASS" &&
     report.fingerprint === current &&
     Array.isArray(checks) &&
-    checks.every((c) => c.status === "PASS") &&
+    checks.every(
+      (c) =>
+        c &&
+        typeof c === "object" &&
+        typeof c.name === "string" &&
+        c.status === "PASS",
+    ) &&
     REQUIRED[scope].every((name) =>
       checks.some(
         (c) =>
@@ -266,6 +285,7 @@ export function verified(report, scope, current) {
   );
 }
 export async function handleHook(event, data = {}, root = ROOT) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) data = {};
   if (event === "SessionStart")
     return {
       systemMessage:

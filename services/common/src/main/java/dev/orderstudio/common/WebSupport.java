@@ -19,6 +19,9 @@ import org.springframework.context.annotation.*;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -52,9 +55,11 @@ public class WebSupport {
   }
 
   @Bean
-  OpenAPI openAPI(@Value("${spring.application.name}") String name) {
+  OpenAPI openAPI(
+      @Value("${spring.application.name}") String name,
+      @Value("${studio.version}") String version) {
     return new OpenAPI()
-        .info(new Info().title(name).version("2.0.0"))
+        .info(new Info().title(name).version(version))
         .servers(List.of(new Server().url("/")));
   }
 
@@ -130,6 +135,37 @@ public class WebSupport {
     @ExceptionHandler(Database.StorageException.class)
     ResponseEntity<Api.ErrorEnvelope> storage(Exception e, HttpServletRequest r) {
       return response(503, "STORAGE_UNAVAILABLE", Map.of(), r);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    ResponseEntity<Api.ErrorEnvelope> method(
+        HttpRequestMethodNotSupportedException e, HttpServletRequest r) {
+      return ResponseEntity.status(405)
+          .headers(e.getHeaders())
+          .body(
+              Api.error(
+                  "METHOD_NOT_ALLOWED", String.valueOf(r.getAttribute("request_id")), Map.of()));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    ResponseEntity<Api.ErrorEnvelope> mediaType(
+        HttpMediaTypeNotSupportedException e, HttpServletRequest r) {
+      return ResponseEntity.status(415)
+          .headers(e.getHeaders())
+          .body(
+              Api.error(
+                  "UNSUPPORTED_MEDIA_TYPE",
+                  String.valueOf(r.getAttribute("request_id")),
+                  Map.of()));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    ResponseEntity<Api.ErrorEnvelope> accept(
+        HttpMediaTypeNotAcceptableException e, HttpServletRequest r) {
+      return ResponseEntity.status(406)
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              Api.error("NOT_ACCEPTABLE", String.valueOf(r.getAttribute("request_id")), Map.of()));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

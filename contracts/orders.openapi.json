@@ -36,6 +36,17 @@
         ],
         "type": "object"
       },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
       "Order": {
         "properties": {
           "cancel_requested_at": {
@@ -152,7 +163,7 @@
   },
   "info": {
     "title": "orders",
-    "version": "2.0.0"
+    "version": "2.0.1"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -220,6 +231,26 @@
             },
             "description": "Not Found"
           },
+          "405": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Method Not Allowed"
+          },
+          "406": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Acceptable"
+          },
           "409": {
             "content": {
               "*/*": {
@@ -229,6 +260,16 @@
               }
             },
             "description": "Conflict"
+          },
+          "415": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
@@ -328,6 +369,26 @@
             },
             "description": "Not Found"
           },
+          "405": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Method Not Allowed"
+          },
+          "406": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Acceptable"
+          },
           "409": {
             "content": {
               "*/*": {
@@ -337,6 +398,16 @@
               }
             },
             "description": "Conflict"
+          },
+          "415": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
@@ -408,6 +479,26 @@
             },
             "description": "Not Found"
           },
+          "405": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Method Not Allowed"
+          },
+          "406": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Acceptable"
+          },
           "409": {
             "content": {
               "*/*": {
@@ -417,6 +508,16 @@
               }
             },
             "description": "Conflict"
+          },
+          "415": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
@@ -498,6 +599,26 @@
             },
             "description": "Not Found"
           },
+          "405": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Method Not Allowed"
+          },
+          "406": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Acceptable"
+          },
           "409": {
             "content": {
               "*/*": {
@@ -507,6 +628,16 @@
               }
             },
             "description": "Conflict"
+          },
+          "415": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
@@ -548,6 +679,16 @@
       "get": {
         "operationId": "live",
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "OK"
+          },
           "404": {
             "content": {
               "*/*": {
@@ -558,6 +699,26 @@
             },
             "description": "Not Found"
           },
+          "405": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Method Not Allowed"
+          },
+          "406": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Acceptable"
+          },
           "409": {
             "content": {
               "*/*": {
@@ -567,6 +728,16 @@
               }
             },
             "description": "Conflict"
+          },
+          "415": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
@@ -608,6 +779,16 @@
       "get": {
         "operationId": "ready",
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "OK"
+          },
           "404": {
             "content": {
               "*/*": {
@@ -618,6 +799,26 @@
             },
             "description": "Not Found"
           },
+          "405": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Method Not Allowed"
+          },
+          "406": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not Acceptable"
+          },
           "409": {
             "content": {
               "*/*": {
@@ -627,6 +828,16 @@
               }
             },
             "description": "Conflict"
+          },
+          "415": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {

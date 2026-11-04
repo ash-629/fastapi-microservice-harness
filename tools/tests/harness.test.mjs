@@ -76,6 +76,26 @@ test("Stop requires scoped evidence and bounds continuation", async () => {
   assert.deepEqual(await handleHook("Stop", {}, root), {});
   assert.equal(readJson(join(root, ".harness/task.json")).active, false);
 });
+
+test("malformed receipts are rejected without crashing the Stop hook", async () => {
+  const root = fixture();
+  writeJson(join(root, ".harness/task.json"), { active: true, scope: "full" });
+  for (const value of [
+    null,
+    [],
+    "bad",
+    42,
+    { status: "PASS", fingerprint: fingerprint(root), checks: [null] },
+  ]) {
+    writeJson(join(root, ".harness/latest.json"), value);
+    assert.equal((await handleHook("Stop", {}, root)).decision, "block");
+    assert.equal(verified(value, "full", fingerprint(root)), false);
+  }
+  assert.equal(verified(report(root), "unknown", fingerprint(root)), false);
+  writeFileSync(join(root, ".harness/latest.json"), "{broken");
+  assert.deepEqual(readJson(join(root, ".harness/latest.json")), {});
+  assert.equal((await handleHook("Stop", {}, root)).decision, "block");
+});
 test("consultation does not create a task; source changes mark an active task dirty", async () => {
   const root = fixture();
   assert.deepEqual(await handleHook("Stop", {}, root), {});
@@ -83,6 +103,7 @@ test("consultation does not create a task; source changes mark an active task di
     active: true,
     scope: "affected",
   });
+  assert.equal((await handleHook("Stop", null, root)).decision, "block");
   report(root);
   writeFileSync(join(root, "source.java"), "changed");
   await handleHook("PostToolUse", {}, root);

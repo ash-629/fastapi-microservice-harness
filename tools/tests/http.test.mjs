@@ -74,6 +74,60 @@ test("real Java HTTP services preserve validation, contracts, stock, cancellatio
     const check = ajv.compile({ $ref: `${name}#/components/schemas/${model}` });
     assert(check(value), JSON.stringify(check.errors));
   }
+  await t.test(
+    "health success responses are documented and match live payloads",
+    async () => {
+      for (const [name, url] of [
+        ["orders", base],
+        ["inventory", inventory],
+      ]) {
+        for (const path of ["/health/live", "/health/ready"]) {
+          assert(schemas[name].paths[path].get.responses["200"]);
+          const r = await fetch(url + path);
+          assert.equal(r.status, 200);
+          const value = await r.json();
+          assert.equal(value.status, path.endsWith("live") ? "ok" : "ready");
+          validate(name, "Health", value);
+        }
+        assert.equal(
+          schemas[name].info.version,
+          JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version,
+        );
+      }
+    },
+  );
+  await t.test(
+    "unsupported HTTP methods and media types keep client-error semantics",
+    async () => {
+      const method = await send("/api/v1/orders", { method: "PUT" });
+      assert.equal(method.status, 405);
+      assert(method.headers.get("allow").includes("GET"));
+      const wrongBody = await fetch(base + "/api/v1/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain",
+          "Idempotency-Key": randomUUID(),
+          "X-Request-ID": rid,
+        },
+        body: "{}",
+      });
+      assert.equal(wrongBody.status, 415);
+      const accept = await send("/api/v1/orders", {
+        headers: { Accept: "text/plain", "X-Request-ID": rid },
+      });
+      assert.equal(accept.status, 406);
+      for (const [r, code] of [
+        [method, "METHOD_NOT_ALLOWED"],
+        [wrongBody, "UNSUPPORTED_MEDIA_TYPE"],
+        [accept, "NOT_ACCEPTABLE"],
+      ]) {
+        const value = await r.json();
+        assert.equal(value.error.code, code);
+        assert.equal(value.request_id, rid);
+        validate("orders", "Error", value);
+      }
+    },
+  );
   await t.test("strict input and uniform errors", async () => {
     for (const quantity of [0, 100, -1, 1.5, true, "2", null]) {
       const r = await send("/api/v1/orders", {

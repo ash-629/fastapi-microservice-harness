@@ -17,6 +17,10 @@ export type ErrorDetail = {
     message: string;
 };
 
+export type Health = {
+    status: string;
+};
+
 export type Product = {
     available_qty: number;
     name: string;
@@ -61,9 +65,21 @@ export type ListProductsErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -104,9 +120,21 @@ export type GetProductErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -145,9 +173,21 @@ export type LiveErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -164,6 +204,15 @@ export type LiveErrors = {
 
 export type LiveError = LiveErrors[keyof LiveErrors];
 
+export type LiveResponses = {
+    /**
+     * OK
+     */
+    200: Health;
+};
+
+export type LiveResponse = LiveResponses[keyof LiveResponses];
+
 export type ReadyData = {
     body?: never;
     path?: never;
@@ -177,9 +226,21 @@ export type ReadyErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -196,6 +257,15 @@ export type ReadyErrors = {
 
 export type ReadyError = ReadyErrors[keyof ReadyErrors];
 
+export type ReadyResponses = {
+    /**
+     * OK
+     */
+    200: Health;
+};
+
+export type ReadyResponse = ReadyResponses[keyof ReadyResponses];
+
 export type GetReservationData = {
     body?: never;
     path: {
@@ -211,9 +281,21 @@ export type GetReservationErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -254,9 +336,21 @@ export type PutReservationErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
@@ -297,9 +391,21 @@ export type ReleaseReservationErrors = {
      */
     404: Error;
     /**
+     * Method Not Allowed
+     */
+    405: Error;
+    /**
+     * Not Acceptable
+     */
+    406: Error;
+    /**
      * Conflict
      */
     409: Error;
+    /**
+     * Unsupported Media Type
+     */
+    415: Error;
     /**
      * Unprocessable Entity
      */
